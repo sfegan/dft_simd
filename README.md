@@ -99,7 +99,17 @@ operates on SIMD data types. One such possibility seems to be [KISS
 FFT](https://github.com/mborgerding/kissfft), although I did not test it. Here I
 exploit the good design of the FFTW algorithm. As discussed above this library
 is built upon codelets that implement the small transforms. The codelets are
-themselves machine-generated, using the ``genfft``.
+themselves machine-generated, using a package, ``genfft``, that is [distributed
+with FFTW3](https://github.com/FFTW/fftw3/tree/master/genfft). ``genfft``
+consists of a series of code generators written in CAML that produce codelets
+of various types for any desired number of samples. The three generators of
+primary interest here are:
+
+- ``gen_r2cf.ml`` : produce REAL to COMPLEX, _forward_, transform
+- ``gen_r2cb.ml`` : produce COMPLEX to REAL, _backward_, transform
+- ``gen_notw.ml`` : produce COMPLEX to COMPLEX transform
+
+
 
 
 ### License ###
