@@ -1,6 +1,6 @@
 # dft_simd #
 
-## Efficient bulk transformation of short data samples using DFTs ##
+### Efficient bulk transformation of short data samples using DFTs ###
 
 __Adapting FFTW scalar codelets to SIMD data types and instructions to achieve
 signifcantly improved DFT performance.__
@@ -22,7 +22,7 @@ this could result in 18 billion 60-sample traces to transform.
 There is clearly therefore a significant desire that the DFT implementation be
 as efficient as possible, i.e. that it fully exploit the resources of the CPU.
 
-For general purposes the (FFTW library)[http://fftw.org/] provides an
+For general purposes the [FFTW library](http://fftw.org/) provides an
 world-class DFT implementation; in fact the authors somewhat jokingly claim that
 FFTW is an acronym for the _Fastest Fourier Transform in the West_. FFTW uses a
 two-step process to implement DFTs. Transforms must be __planned__ before they
@@ -57,13 +57,13 @@ transform described below. The four FFTW test cases with their running times on
 my laptop, a MacBookPro running High Sierra on Intel(R) Core(TM) i5-5287U CPU @
 2.90GHz, __which supports AVX2__, with FFTW installed through MacPorts, are:
 
-- Single DFT per _execute_, aligned datasets : 1968 ms. Here the FFTW planner
+- Single DFT per _execute_, aligned datasets : __1968 ms__. Here the FFTW planner
   chose SSE-aware (SIMD) versions of the 5 and 12 sample codelets.
 
-- Single DFT per _execute_, deliberately misaligned datasets : 3327 ms.
+- Single DFT per _execute_, deliberately misaligned datasets : __3327 ms__.
   Here the planner could not choose the SSE codelets as the data were unaligned.
 
-- Bulk DFT of 8 transforms per _execute_, aligned datasets : 2124 ms. The
+- Bulk DFT of 8 transforms per _execute_, aligned datasets : __2124 ms__. The
   planner used the SIMD codelets.
 
 It can be seen that the SIMD plans provide a relatively large improvement in
