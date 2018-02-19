@@ -144,6 +144,7 @@ TEST(TestDFT, FFTW_Aligned_Eight)
   fftwf_free(xt);
 }
 
+#if 0 // This seems not to be any different to above
 TEST(TestDFT, FFTW_SuperAligned_Eight)
 {
   float* xt = fftwf_alloc_real(nvec*nsamp_align);
@@ -175,6 +176,7 @@ TEST(TestDFT, FFTW_SuperAligned_Eight)
   fftwf_free(xf);
   fftwf_free(xt);
 }
+#endif
 
 TEST(TestDFT, AVX2)
 {
