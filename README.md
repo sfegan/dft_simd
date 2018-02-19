@@ -1,6 +1,4 @@
-# dft_simd #
-
-### Efficient bulk transformation of short data samples using DFTs ###
+## Efficient bulk transformation of short data samples using DFTs ##
 
 __Adapting FFTW scalar codelets to SIMD data types and instructions to achieve
 signifcantly improved DFT performance.__
@@ -51,41 +49,61 @@ make
 ./dft_simd
 ````
 
-This will run four test cases, each of which transforms 2**24 (16.8 million)
-waveforms. The first three test cases use FFTW, the final one uses a custom SIMD
-transform described below. The four FFTW test cases with their running times on
-my laptop, a MacBookPro running High Sierra on Intel(R) Core(TM) i5-5287U CPU @
-2.90GHz, __which supports AVX2__, with FFTW installed through MacPorts, are:
+This will run five test cases, each of which transforms 2**24 (16.8 million)
+waveforms. The first four test cases use FFTW, the final one uses a custom SIMD
+transform described below. The four FFTW test cases, along with their running
+times on my laptop, a MacBookPro running High Sierra on Intel(R) Core(TM)
+i5-5287U CPU @ 2.90GHz, __which supports AVX2__, with FFTW installed through
+MacPorts, are:
 
 - Single DFT per _execute_, aligned datasets : __1968 ms__. Here the FFTW planner
   chose SSE-aware (SIMD) versions of the 5 and 12 sample codelets.
 
-- Single DFT per _execute_, deliberately misaligned datasets : __3327 ms__.
-  Here the planner could not choose the SSE codelets as the data were unaligned.
+- Single DFT per _execute_, deliberately misaligned datasets : __3260 ms__.
+  Here the planner could not choose the SSE codelets as the data were not
+  properly aligned.
 
-- Bulk DFT of 8 transforms per _execute_, aligned datasets : __2124 ms__. The
+- Bulk DFT of 8 transforms per _execute_, aligned datasets : __2013 ms__. The
   planner used the SIMD codelets.
+
+- Bulk DFT of 8 transforms per _execute_, aligned datasets, with the order of
+  the axes transposed : __2688 ms__. Here the planner combined an SIMD
+  version of the 12 sample codelet but a scalar version of the 5 sample codelet.
 
 It can be seen that the SIMD plans provide a relatively large improvement in
 execution speed, as expected, but that they do not come close to providing the
 factor of 8 improvement that one might expect given that the AVX vector
 registers are 256 bits wide, i.e. that they can process 8 floats at once. Also,
-note that the SIMD improves even DFT speed even in the simple
+note that the SIMD improves the DFT speed even in the simple
 single-transform-per-execution case. No additional improvement was seen in the
 8-transforms-at-once case, even though FFTW could have theoretically achieved
 this.
 
-In essence this shows is that FFTW uses SIMD instructions to manipulate the data
-__horizontally__, combining data from a single transform into vectors  where
-possible to execute SIMD instruction. It does not however combine data
-__vertically__, i.e. it does not combine samples from different transforms into
-a vector and manipulate them, although that is the __classic__ SIMD approach,
-used since the days of the old CDC and Cray mainframe vector processors.
+I think that in essence this shows is that FFTW uses SIMD instructions to
+manipulate the data __horizontally__, combining elements from a single transform
+dataset into vectors where possible to execute SIMD instruction, reducing the
+total number of instructions to execute in the transform. It does not however
+seem to combine data __vertically__, i.e. it does not combine samples from
+different datasets into a vector and manipulate them, although that is the
+__classic__ SIMD approach. Horizontal SIMD configurations tend not to be as
+efficient on small data sets, since the elements in the vector must inevitably
+be combined, which leads to a significant number of scalar operations. A
+vertical implementation can often use 100% pure SIMD instructions, since
+the data from the individual datasets do not need to be mixed. In addition the
+algorithm is substantially easier, since it is exactly the same as a scalar
+algorithm, but with a vector data type, i.e. it is almost as easy as replacing
+``float`` with ``__m256`` to achieve an 8-fold increase in speed.
 
-
-
+To evaluate the vertical approach we would need an FFT library that accepts and
+operates on SIMD data types. One such possibility seems to be [KISS
+FFT](https://github.com/mborgerding/kissfft), although I did not test it. Here I
+exploit the good design of the FFTW algorithm. As discussed above this library
+is built upon codelets that implement the small transforms. The codelets are
+themselves machine-generated, using the ``genfft``.
 
 
 ### License ###
 
-__dft_simd__ is distributed under the [GPLv2](LICENSE.md) license.
+__dft_simd__ is distributed under the [GPLv2](LICENSE.md) license, although
+copyright on the machine-generated portions of the code seems [problematic
+to assert](http://www.wipo.int/wipo_magazine/en/2017/05/article_0003.html).
