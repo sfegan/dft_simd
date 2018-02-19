@@ -1,0 +1,10 @@
+*.o
+*.s
+*.a
+dft_simd
+dft_simd.dSYM
+gtest-1.8.0/CMakeCache.txt
+gtest-1.8.0/CMakeFiles
+gtest-1.8.0/cmake_install.cmake
+gtest-1.8.0/Makefile
+mybuild

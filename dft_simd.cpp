@@ -177,8 +177,6 @@ TEST(TestDFT, AVX2)
   fftwf_free(xt);
 }
 
-// Compile : g++ -Igtest-1.8.0/include -I/opt/local/include/ -L/opt/local/lib -Lgtest-1.8.0 -g -O3 -march=native -std=c++11 -o dft_simd dft_simd.cpp -lfftw3f -lgtest -lgtest_main
-
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
