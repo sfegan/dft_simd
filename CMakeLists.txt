@@ -3,7 +3,7 @@
 # Copyright 2018, Stephen Fegan <sfegan@llr.in2p3.fr>
 # LLR, Ecole Polytechnique, CNRS/IN2P3
 #
-# This file is part of "calin"
+# This file is part of "fftw_simd"
 #
 # "fftw_simd" is free software: you can redistribute it and/or modify it under the
 # terms of the GNU General Public License version 2 or later, as published by
