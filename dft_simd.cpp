@@ -144,6 +144,38 @@ TEST(TestDFT, FFTW_Aligned_Eight)
   fftwf_free(xt);
 }
 
+TEST(TestDFT, FFTW_Aligned_TransposedEight)
+{
+  float* xt = fftwf_alloc_real(nvec*nsamp);
+  float* xf = fftwf_alloc_real(nvec*2*(nsamp/2 + 1));
+  std::mt19937 core(12345);
+  std::uniform_real_distribution<float> gen(0.0,1.0);
+  int n = nsamp;
+  fftwf_plan plan = fftwf_plan_many_dft_r2c(1, &n, nvec,
+                            (float*)xt, nullptr, nvec, 1,
+                            (fftwf_complex*)xf, nullptr, nvec, 1,
+                            FFTW_MEASURE);
+  fftwf_print_plan(plan);
+  std::cout << '\n';
+  for(int ivec=0;ivec<nvec;ivec++) {
+    for(int isamp=0;isamp<nsamp;isamp++) {
+      xt[isamp * nvec + ivec] = gen(core);
+    }
+  }
+  for(int iloop=0; iloop<nloop; iloop++) {
+    fftwf_execute(plan);
+    if(iloop==0) {
+      for(int ifreq=0;ifreq<(nsamp/2 + 1);ifreq++) {
+        std::cout << xf[2*ifreq*nvec] << ' ' << xf[2*ifreq*nvec+1] << ' ';
+      }
+      std::cout << '\n';
+    }
+  }
+  fftwf_destroy_plan(plan);
+  fftwf_free(xf);
+  fftwf_free(xt);
+}
+
 #if 0 // This seems not to be any different to above
 TEST(TestDFT, FFTW_SuperAligned_Eight)
 {
