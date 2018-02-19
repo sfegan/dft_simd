@@ -26,6 +26,8 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
+#if defined(__AVX__) and defined(__FMA__)
+
 using E = __m256;
 using R = __m256;
 using INT = int;
@@ -198,6 +200,8 @@ TEST(TestDFT, AVX2)
   fftwf_free(xf);
   fftwf_free(xt);
 }
+
+#endif
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
