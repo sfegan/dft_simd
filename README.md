@@ -114,7 +114,9 @@ the three generators of primary interest here are:
 - ``gen_notw.ml`` : produce scalar COMPLEX to COMPLEX transform
 
 The generators can be compiled using the ``ocmlbuild`` compiler that is
-available on MacPorts. To build the code generators try:
+available on MacPorts (package
+[ocaml-ocamlbuild](https://www.macports.org/ports.php?by=library&substr=ocaml-ocamlbuild)).
+To build the code generators try:
 
 ````sh
 ocamlbuild -classic-display -libs unix,nums gen_r2cf.native gen_r2cb.native gen_notw.ml
