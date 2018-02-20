@@ -169,9 +169,10 @@ void dft_codelet_r2cf_3(R * R0, R * R1, R * Cr, R * Ci,
 ````
 
 As can be seen the algorithm of the codelet is expressed in terms of abstract
-types ``R`` and ``E``, and abstract mathematical operations ``MUL``, ``SUB``,
-``ADD``, ``NEG``, ``FMA``, ``FMS``, ``FNMA`` and ``FNMS``. Within FFTW this
-allows the codelets to be used with single-precision, double-precision and
+types ``R`` and ``E``, abstract mathematical operations ``MUL``, ``SUB``,
+``ADD``, ``NEG``, ``FMA``, ``FMS``, ``FNMA`` and ``FNMS``, and some helper
+functions & macros ``DK``, ``WS``, and ``MAKE_VOLATILE_STRIDE``. Within FFTW
+this allows the codelets to be used with single-precision, double-precision and
 long-double floats; hence three versions of the library is usually available to
 developers as ``-fftw3``, ``-fftw3f``, and ``-fftw3ld``. Each of these libraries
 is compiled by setting ``E`` and ``R`` appropriately during the build.
@@ -205,7 +206,7 @@ inline E FNMA(const E a, const E b, const E c) { return _mm256_fnmsub_ps(a,b,c);
 inline E FNMS(const E a, const E b, const E c) { return _mm256_fnmadd_ps(a,b,c); }
 
 #define DK(name, val) \
-  static const E name = { (val),(val),(val),(val),(val),(val),(val),(val) };
+  static const E name = { (val),(val),(val),(val),(val),(val),(val),(val) }
 
 #define MAKE_VOLATILE_STRIDE(a,b) 0
 
@@ -215,6 +216,15 @@ inline E FNMS(const E a, const E b, const E c) { return _mm256_fnmadd_ps(a,b,c);
 
 #endif // defined(__AVX__) and defined(__FMA__)
 ````
+
+The types and functions could be changed to operate on double-precision AVX
+vectors (``__m256d``) and presumably the single-precision and double-precision
+AVX-512 vector types also. Note the somewhat confusing difference between the
+FFTW and Intel definitions of the fused negative multiply and add/subtract
+instructions that requires ``FNMA`` be mapped to ``_mm256_fnmsub_ps`` and
+``FNMS`` be mapped to ``_mm256_fnmadd_ps``.
+
+
 
 ### License ###
 
