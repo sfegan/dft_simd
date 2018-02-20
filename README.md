@@ -312,20 +312,25 @@ with SIMD data vector types. Therefore a _scalar_ codelet can be trivially
 transformed into a _vector_ codelet to allow efficient SIMD DFTs to be
 calculated.
 
-This approach is only really feasible for small transformation sizes that are
-known in advance, as it requires the codelets be generated and compiled in
-advance. Codelets for long transformation sizes are impractical as they grow in
-size by Nlog(N), and will relatively quickly exceed the cache size of the CPU,
-after which their execution size will slow. For long transforms loops are more
-appropriate; and the full machinery of FFTW to plan and combine results from
-different codelets would need to be reimplemented for the vector types. In
-principle FFTW could provide a full library that works with SIMD vector types
-(like they provide for float, double, long double), but in practice it would
-probably be "nicer" for them to internally handle the case of multiple DFTs
-requested through the advanced differently, using vertical codelets internally.
+This approach is only really feasible for small transformation sizes that can be
+anticpated at compile time, as it requires the codelets be generated and
+compiled in advance. Codelets for long transformation sizes are impractical as
+they grow in size by Nlog(N), and will relatively quickly exceed the cache size
+of the CPU, after which their execution size will slow. Long transforms should
+be broken down into loops over the prime factors, meaning that something like
+the full machinery of FFTW to plan and combine results from different codelets
+would need to be reimplemented for the vector types.
+
+In principle FFTW itself could provide a full library that works with SIMD
+vector types (like they provide for float, double, long double), but in practice
+it would probably be more useful to the user for them to handle the case of
+multiple DFTs requested through the _advanced_ interface differently, using
+vertical codelets internally.
 
 ### License ###
 
 __dft_simd__ is distributed under the [GPLv2](LICENSE.md) license, although
-copyright on the machine-generated portions of the code seems [problematic
-to assert](http://www.wipo.int/wipo_magazine/en/2017/05/article_0003.html).
+copyright on the machine-generated portions of the code seems [problematic to
+assert](http://www.wipo.int/wipo_magazine/en/2017/05/article_0003.html). This
+readme is distributed under the terms of the
+[CC-BY-SA-4.0](data/LICENSE_CC_BY_SA.md) license.
