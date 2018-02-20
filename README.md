@@ -266,16 +266,36 @@ The inputs to the ``r2cf`` codelet are:
     int csr = 2;
     int csi = 2;
     // call the codelet and zero unwritten imaginary components if desired
-    dft_codelet_r2cf_60(R0, R1, Cr, Ci, rs, csr, csi, .... )
+    dft_codelet_r2cf_60(R0, R1, Cr, Ci, rs, csr, csi, ..see..below.. )
     Ci[0] = Ci[N/2] = _mm256_setzero_ps();
     ````
 
   The FFTW _half-complex_ format can also be achieved using a negative stride
-  on the complex array.
+  on the imaginary array.
 
-- Hello
+- The final three parameters allow the codelet to perform multiple transforms
+  in a loop in one single call. The ``v`` option specifies how many transforms
+  to perform, it should be at least one if the code is to do anything at all.
+  The ``ivs`` and ``ovs`` parameters specify the _stride_ of the arrays of
+  input and output data if multiple data sets are to be transformed (the "v"
+  stands for vector in the parlance of FFTW, but that is a confusing term here
+  as we talk about SIMD vectors, so I try to avoid it). The simplest is to set
+  ``v=1`` in which case ``ivs`` and ``ovs`` are irrelevant.
 
-The ``dft_simd`` test code uses the 60-element forward DFT to
+The ``dft_simd`` test code in this repository uses the 60-element forward
+real-to-complex DFT codelet to compare with the calls to FFTW in the
+configurations described above. It performs the same number of transforms
+(16.7 million) in batches of eight by packing the data into an array of
+SIMD vectors of type ``__m256``. The results are:
+
+- SIMD DFT of 8 transforms per call to 60-sample codelet : __400 ms__.
+
+This code is therefore approximately __five__ times faster than the fastest
+FFTW option, and more than __eight__ times slower than the slowest case. This
+is probably not too surprising given that the slow FFTW plan used no SIMD
+enhancements (and so a factor of 8 would be expected given the size of the
+AVX vectors), and the fastest plan used some SSE SIMD enhancements, but could
+not used 100% AVX SIMD instructions.
 
 ### Conclusion ###
 
