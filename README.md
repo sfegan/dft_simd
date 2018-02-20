@@ -101,16 +101,69 @@ exploit the good design of the FFTW algorithm. As discussed above this library
 is built upon codelets that implement the small transforms. The codelets are
 themselves machine-generated, using a package, ``genfft``, that is [distributed
 with FFTW3](https://github.com/FFTW/fftw3/tree/master/genfft). ``genfft``
-consists of a series of code generators written in CAML that produce codelets
-of various types for any desired number of samples. The three generators of
-primary interest here are:
+consists of a series of code generators written in [CAML](http://ocaml.org/)
+that produce codelets of various types for any desired number of samples. The
+are generators for scalar and SIMD transforms of various types (complex DFT,
+real DFT, DCT etc..), generators that produce "twiddle factors" to allow the
+output of codelets to be combined into larger transforms, and others. Of these
+the three generators of primary interest here are:
 
-- ``gen_r2cf.ml`` : produce REAL to COMPLEX, _forward_, transform
-- ``gen_r2cb.ml`` : produce COMPLEX to REAL, _backward_, transform
-- ``gen_notw.ml`` : produce COMPLEX to COMPLEX transform
+- ``gen_r2cf.ml`` : produce scalar REAL to COMPLEX (_forward_) transform
+- ``gen_r2cb.ml`` : produce scalar COMPLEX to REAL (_backward_) transform
+- ``gen_notw.ml`` : produce scalar COMPLEX to COMPLEX transform
 
+The generators can be compiled using the ``ocmlbuild`` compiler that is
+available on MacPorts. To build the code generators try:
 
+````sh
+ocamlbuild -classic-display -libs unix,nums gen_r2cf.native gen_r2cb.native gen_notw.ml
+````
 
+As a first example of using the generators we can build a codelet for a 3-sample
+real-to-complex (forward) DFT by running:
+
+````sh
+N=3; ./gen_r2cf.native -n ${N} -standalone -fma -generic-arith
+  -compact -name dft_codelet_r2cf_${N} > dft_r2cf_${N}.c
+````
+
+The key options are:
+
+- ``-n`` : specifies the DFT size,
+- ``-standalone`` : instructs the generator to produce only the codelet function,
+  and not the support functionality to allow the codelet be registerd with FFTW,
+- ``-fma`` : allows the generator to use fused multiply and add instructions,
+- ``-generic-arith`` : instructs the generator to use function-style arithmatic
+  rather than operators, for example ``a=b+c`` will be generated as ``a=MUL(b,c)``,
+- ``-name`` : specifies the name of the generated codelet function.
+
+This will produce the following C code (which I have run through indent) :
+
+````c
+/*
+ * This function contains 4 FP additions, 2 FP multiplications,
+ * (or, 3 additions, 1 multiplications, 1 fused multiply/add),
+ * 7 stack variables, 2 constants, and 6 memory accesses
+ */
+void dft_codelet_r2cf_3(R * R0, R * R1, R * Cr, R * Ci, stride rs, stride csr, stride csi, INT v, INT ivs, INT ovs)
+{
+  DK(KP866025403, +0.866025403784438646763723170752936183471402627);
+  DK(KP500000000, +0.500000000000000000000000000000000000000000000);
+  {
+    INT i;
+    for (i = v; i > 0; i = i - 1, R0 = R0 + ivs, R1 = R1 + ivs, Cr = Cr + ovs, Ci = Ci + ovs, MAKE_VOLATILE_STRIDE(12, rs), MAKE_VOLATILE_STRIDE(12, csr), MAKE_VOLATILE_STRIDE(12, csi)) {
+      E T1, T2, T3, T4;
+      T1 = R0[0];
+      T2 = R1[0];
+      T3 = R0[WS(rs, 1)];
+      T4 = ADD(T2, T3);
+      Cr[WS(csr, 1)] = FNMS(KP500000000, T4, T1);
+      Ci[WS(csi, 1)] = MUL(KP866025403, SUB(T3, T2));
+      Cr[0] = ADD(T1, T4);
+    }
+  }
+}
+````
 
 ### License ###
 
