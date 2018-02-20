@@ -267,7 +267,7 @@ The inputs to the ``r2cf`` codelet are:
     int csi = 2;
     // call the codelet and zero unwritten imaginary components if desired
     dft_codelet_r2cf_60(R0, R1, Cr, Ci, rs, csr, csi, ..see..below.. )
-    Ci[0] = Ci[N/2] = _mm256_setzero_ps();
+    Ci[0] = Ci[N/2 * 2 /* must remember stride ! */] = _mm256_setzero_ps();
     ````
 
   The FFTW _half-complex_ format can also be achieved using a negative stride
