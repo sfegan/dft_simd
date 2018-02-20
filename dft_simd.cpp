@@ -212,8 +212,10 @@ TEST(TestDFT, FFTW_SuperAligned_Eight)
 
 TEST(TestDFT, AVX2)
 {
-  __m256* xt = (__m256*)fftwf_malloc(nvec*nsamp*4);
-  __m256* xf = (__m256*)fftwf_malloc(nvec*2*(nsamp/2+1)*4);
+  __m256* xt = nullptr;
+  __m256* xf;
+  ::posix_memalign((void**)&xt, 32, nvec*nsamp*sizeof(float));
+  ::posix_memalign((void**)&xf, 32, nvec*2*(nsamp/2+1)*sizeof(float));
   for(unsigned i=0;i<2*(nsamp/2+1);i++)xf[i] = _mm256_setzero_ps();
   std::mt19937 core(12345);
   std::uniform_real_distribution<float> gen(0.0,1.0);
@@ -231,8 +233,8 @@ TEST(TestDFT, AVX2)
       std::cout << '\n';
     }
   }
-  fftwf_free(xf);
-  fftwf_free(xt);
+  ::free(xf);
+  ::free(xt);
 }
 
 #endif
