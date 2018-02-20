@@ -123,7 +123,7 @@ As a first example of using the generators we can build a codelet for a 3-sample
 real-to-complex (forward) DFT by running:
 
 ````sh
-N=3; ./gen_r2cf.native -n ${N} -standalone -fma -generic-arith
+N=3; ./gen_r2cf.native -n ${N} -standalone -fma -generic-arith \
   -compact -name dft_codelet_r2cf_${N} > dft_r2cf_${N}.c
 ````
 
@@ -131,9 +131,9 @@ The key options are:
 
 - ``-n`` : specifies the DFT size,
 - ``-standalone`` : instructs the generator to produce only the codelet function,
-  and not the support functionality to allow the codelet be registerd with FFTW,
+  and not the support functionality to allow the codelet be registered with FFTW,
 - ``-fma`` : allows the generator to use fused multiply and add instructions,
-- ``-generic-arith`` : instructs the generator to use function-style arithmatic
+- ``-generic-arith`` : instructs the generator to use function-style arithmetic
   rather than operators, for example ``a=b+c`` will be generated as ``a=MUL(b,c)``,
 - ``-name`` : specifies the name of the generated codelet function.
 
@@ -145,13 +145,16 @@ This will produce the following C code (which I have run through indent) :
  * (or, 3 additions, 1 multiplications, 1 fused multiply/add),
  * 7 stack variables, 2 constants, and 6 memory accesses
  */
-void dft_codelet_r2cf_3(R * R0, R * R1, R * Cr, R * Ci, stride rs, stride csr, stride csi, INT v, INT ivs, INT ovs)
+void dft_codelet_r2cf_3(R * R0, R * R1, R * Cr, R * Ci,
+  stride rs, stride csr, stride csi, INT v, INT ivs, INT ovs)
 {
   DK(KP866025403, +0.866025403784438646763723170752936183471402627);
   DK(KP500000000, +0.500000000000000000000000000000000000000000000);
   {
     INT i;
-    for (i = v; i > 0; i = i - 1, R0 = R0 + ivs, R1 = R1 + ivs, Cr = Cr + ovs, Ci = Ci + ovs, MAKE_VOLATILE_STRIDE(12, rs), MAKE_VOLATILE_STRIDE(12, csr), MAKE_VOLATILE_STRIDE(12, csi)) {
+    for (i = v; i > 0; i = i - 1, R0 = R0 + ivs, R1 = R1 + ivs,
+        Cr = Cr + ovs, Ci = Ci + ovs, MAKE_VOLATILE_STRIDE(12, rs),
+        MAKE_VOLATILE_STRIDE(12, csr), MAKE_VOLATILE_STRIDE(12, csi)) {
       E T1, T2, T3, T4;
       T1 = R0[0];
       T2 = R1[0];
@@ -163,6 +166,54 @@ void dft_codelet_r2cf_3(R * R0, R * R1, R * Cr, R * Ci, stride rs, stride csr, s
     }
   }
 }
+````
+
+As can be seen the algorithm of the codelet is expressed in terms of abstract
+types ``R`` and ``E``, and abstract mathematical operations ``MUL``, ``SUB``,
+``ADD``, ``NEG``, ``FMA``, ``FMS``, ``FNMA`` and ``FNMS``. Within FFTW this
+allows the codelets to be used with single-precision, double-precision and
+long-double floats; hence three versions of the library is usually available to
+developers as ``-fftw3``, ``-fftw3f``, and ``-fftw3ld``. Each of these libraries
+is compiled by setting ``E`` and ``R`` appropriately during the build.
+
+It is this flexibility that allows the codelets to be trivially used with SIMD
+vector types. For example the following macros or inlines are sufficient to
+allow the code to be used with the AVX single-precision vector type ``__m256``
+available as part of the [Intel intrinics API](https://software.intel.com/sites/landingpage/IntrinsicsGuide/).
+
+````c++
+#if defined(__AVX__) and defined(__FMA__)
+
+using E = __m256;
+using R = __m256;
+using INT = int;
+using stride = int;
+
+inline int WS(const stride s, const stride i) { return s*i; }
+
+inline E ADD(const E a, const E b) { return _mm256_add_ps(a,b); }
+inline E SUB(const E a, const E b) { return _mm256_sub_ps(a,b); }
+inline E MUL(const E a, const E b) { return _mm256_mul_ps(a,b); }
+
+//inline E NEG(const E a) { return _mm256_sub_ps(_mm256_setzero_ps(),a); }
+inline E NEG(const E a) { return _mm256_xor_ps(a, _mm256_set1_ps(-0.0)); }
+
+inline E FMA(const E a, const E b, const E c) { return _mm256_fmadd_ps(a,b,c); }
+inline E FMS(const E a, const E b, const E c) { return _mm256_fmsub_ps(a,b,c); }
+// Note: inconsistency between FFTW and Intel intrinsics definitions of FNMA/S
+inline E FNMA(const E a, const E b, const E c) { return _mm256_fnmsub_ps(a,b,c); }
+inline E FNMS(const E a, const E b, const E c) { return _mm256_fnmadd_ps(a,b,c); }
+
+#define DK(name, val) \
+  static const E name = { (val),(val),(val),(val),(val),(val),(val),(val) };
+
+#define MAKE_VOLATILE_STRIDE(a,b) 0
+
+#include "dft_c2c_60.c"
+#include "dft_r2cf_60.c"
+#include "dft_r2cb_60.c"
+
+#endif // defined(__AVX__) and defined(__FMA__)
 ````
 
 ### License ###
