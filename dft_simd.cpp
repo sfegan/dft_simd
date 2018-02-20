@@ -49,7 +49,7 @@ inline E FNMA(const E a, const E b, const E c) { return _mm256_fnmsub_ps(a,b,c);
 inline E FNMS(const E a, const E b, const E c) { return _mm256_fnmadd_ps(a,b,c); }
 
 #define DK(name, val) \
-  static const E name = { (val),(val),(val),(val),(val),(val),(val),(val) };
+  static const E name = { (val),(val),(val),(val),(val),(val),(val),(val) }
 
 #define MAKE_VOLATILE_STRIDE(a,b) 0
 
@@ -59,7 +59,7 @@ inline E FNMS(const E a, const E b, const E c) { return _mm256_fnmadd_ps(a,b,c);
 
 constexpr int nvec = 8;
 constexpr int nsamp = 60;
-constexpr int nsamp_align = (nsamp+nvec-1)/nvec * nvec;
+//constexpr int nsamp_align = (nsamp+nvec-1)/nvec * nvec;
 constexpr int nloop = 8192*256;
 
 TEST(TestDFT, FFTW_Aligned_One)
