@@ -179,8 +179,9 @@ is compiled by setting ``E`` and ``R`` appropriately during the build.
 
 It is this flexibility that allows the codelets to be trivially used with SIMD
 vector types. For example the following macros or inlines are sufficient to
-allow the code to be used with the AVX single-precision vector type ``__m256``
-available as part of the [Intel intrinics API](https://software.intel.com/sites/landingpage/IntrinsicsGuide/).
+allow the code to be used to transform eight datasets packed into the AVX
+single-precision vector type ``__m256`` available as part of the [Intel
+intrinics API](https://software.intel.com/sites/landingpage/IntrinsicsGuide/).
 
 ````c++
 #if defined(__AVX__) and defined(__FMA__)
@@ -224,7 +225,59 @@ FFTW and Intel definitions of the fused negative multiply and add/subtract
 instructions that requires ``FNMA`` be mapped to ``_mm256_fnmsub_ps`` and
 ``FNMS`` be mapped to ``_mm256_fnmadd_ps``.
 
+The inputs to the ``r2cf`` codelet are:
 
+- Two input ``R`` arrays with the even (``R0``) and odd elements (``R1``) of the
+  real (vector) datasets; see for example Numerical Recipes in C++ section
+  12.3.2 for discussion. If N is even then each of these should have ``N/2``
+  accessible elements, each starting at index 0 (but see discussion of stride
+  below). If N is odd then the even array should have ``(N+1)/2`` accessible
+  elements, and the odd ``(N-1)/2``, each starting at index 0.
+
+- Two output ``R`` arrays into which the codelet will write the real (``Cr``)
+  and imaginary (``Ci``) components of the (vector) transform. If N is even
+  the real array should have ``N/2+1`` addressable elements, starting at zero
+  (i.e. ``[0,1,...,N/2]``) while the imaginary array should have ``N/2-1``
+  elements starting at one (i.e. ``[1,2,...,N/2-1]``). For N odd the real
+  array should have ``(N+1)/2`` addressable elements starting at zero
+  (i.e. ``[0,1,...,(N+1)/2]``), while the imaginary array should have
+  ``(N-1)/2`` addressable elements, starting at one (i.e. ``[1,2,...,(N+1)/2]``).
+  In all cases ``Ci[0]`` is untouched by the code, and the user should set it
+  to zero if desired. The same is true for ``Ci[N/2]`` in the case when N is
+  even.
+
+- Three input array stride specifiers, ``rs``, ``csr``, and ``csi``. These give
+  considerable flexibility to the user to lay the arrays out as desired. As
+  an example it may be desirable to simply have all the samples in order in one
+  array of size ``N``, and return the DFT in an array of size ``2*(N/2+1)``
+  with the _standard layout_ of complex numbers where each real element is
+  followed by each complex element. This can be achieved with something like
+  this:
+
+    ````c++
+    constexpr int N = 60;
+    __m256 xt[N]; // input data
+    __m256 xf[2*(N/2+1)]; // output array
+    __m256* R0 = xt;
+    __m256* R1 = xt+1;
+    __m256* Cr = xf;
+    __m256* Ci = xf+1;
+    int rs = 2;
+    int csr = 2;
+    int csi = 2;
+    // call the codelet and zero unwritten imaginary components if desired
+    dft_codelet_r2cf_60(R0, R1, Cr, Ci, rs, csr, csi, .... )
+    Ci[0] = Ci[N/2] = _mm256_setzero_ps();
+    ````
+
+  The FFTW _half-complex_ format can also be achieved using a negative stride
+  on the complex array.
+
+- Hello
+
+The ``dft_simd`` test code uses the 60-element forward DFT to
+
+### Conclusion ###
 
 ### License ###
 
