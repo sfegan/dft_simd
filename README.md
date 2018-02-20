@@ -86,11 +86,12 @@ total number of instructions to execute in the transform. It does not however
 seem to combine data __vertically__, i.e. it does not combine samples from
 different datasets into a vector and manipulate them, although that is the
 __classic__ SIMD approach. Horizontal SIMD configurations tend not to be as
-efficient on small data sets, since the elements in the vector must inevitably
-be combined, which leads to a significant number of scalar operations. A
-vertical implementation can often use 100% pure SIMD instructions, since
-the data from the individual datasets do not need to be mixed. In addition the
-algorithm is substantially easier, since it is exactly the same as a scalar
+efficient on small data sets, since there may not be enough elements in the
+dataset to efficiently fill the vectors every time and the SIMD vectors will
+inevitably need to be combined, which leads to a significant number of scalar
+operations. A vertical implementation can often use 100% pure SIMD instructions,
+since the data from the individual datasets never need to be mixed. In addition
+the algorithm is substantially easier, since it is exactly the same as a scalar
 algorithm, but with a vector data type, i.e. it is almost as easy as replacing
 ``float`` with ``__m256`` to achieve an 8-fold increase in speed.
 
@@ -291,13 +292,37 @@ SIMD vectors of type ``__m256``. The results are:
 - SIMD DFT of 8 transforms per call to 60-sample codelet : __400 ms__.
 
 This code is therefore approximately __five__ times faster than the fastest
-FFTW option, and more than __eight__ times slower than the slowest case. This
+FFTW option, and more than __eight__ times faster than the slowest case. This
 is probably not too surprising given that the slow FFTW plan used no SIMD
 enhancements (and so a factor of 8 would be expected given the size of the
 AVX vectors), and the fastest plan used some SSE SIMD enhancements, but could
 not used 100% AVX SIMD instructions.
 
 ### Conclusion ###
+
+For cases where a large number of small DFTs must be performed the approach used
+by FFTW does not seem to be optimal. This may be because FFTW is combining data
+elements from the same dataset into SIMD vectors (horizontal approach), rather
+than composing SIMD vectors from elements from different datasets and
+calculating multiple transforms at once (vertical approach).
+
+However the flexible design of the FFTW codelets, in particular their use of
+abstract data types and mathematical operations, allows them to be used directly
+with SIMD data vector types. Therefore a _scalar_ codelet can be trivially
+transformed into a _vector_ codelet to allow efficient SIMD DFTs to be
+calculated.
+
+This approach is only really feasible for small transformation sizes that are
+known in advance, as it requires the codelets be generated and compiled in
+advance. Codelets for long transformation sizes are impractical as they grow in
+size by Nlog(N), and will relatively quickly exceed the cache size of the CPU,
+after which their execution size will slow. For long transforms loops are more
+appropriate; and the full machinery of FFTW to plan and combine results from
+different codelets would need to be reimplemented for the vector types. In
+principle FFTW could provide a full library that works with SIMD vector types
+(like they provide for float, double, long double), but in practice it would
+probably be "nicer" for them to internally handle the case of multiple DFTs
+requested through the advanced differently, using vertical codelets internally.
 
 ### License ###
 
