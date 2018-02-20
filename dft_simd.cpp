@@ -51,7 +51,7 @@ inline E FNMS(const E a, const E b, const E c) { return _mm256_fnmadd_ps(a,b,c);
 #define DK(name, val) \
   static const E name = { (val),(val),(val),(val),(val),(val),(val),(val) }
 
-#define MAKE_VOLATILE_STRIDE(a,b) 0
+inline void MAKE_VOLATILE_STRIDE(int a, int b) { }
 
 #include "dft_c2c_60.c"
 #include "dft_r2cf_60.c"
