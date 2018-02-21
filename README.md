@@ -15,7 +15,7 @@ generate the power-spectrum of the signal for diagnostic purposes.
 In applications in imaging atmospheric Cherenkov astronomy a dataset may consist
 of thousands of events recorded per second, each with as many as a few thousand
 channels recording 60ns of data at a sampling rate of 1GHz. In a half-hour run
-this could result in 18 billion 60-sample traces to transform.
+this could result in 18 billion 60-sample datasets to transform.
 
 There is clearly therefore a significant desire that the DFT implementation be
 as efficient as possible, i.e. that it fully exploit the resources of the CPU.
@@ -318,10 +318,10 @@ This approach is only really feasible for small transformation sizes that can be
 anticpated at compile time, as it requires the codelets be generated and
 compiled in advance. Codelets for long transformation sizes are impractical as
 they grow in size by Nlog(N), and will relatively quickly exceed the cache size
-of the CPU, after which their execution size will slow. Long transforms should
-be broken down into loops over the prime factors, meaning that something like
-the full machinery of FFTW to plan and combine results from different codelets
-would need to be reimplemented for the vector types.
+of the CPU, after which their execution will slow. Long transforms should be
+broken down into loops over the prime factors, meaning that something like the
+full machinery of FFTW to plan and combine results from different codelets would
+need to be reimplemented for the vector types.
 
 In principle FFTW itself could provide a full library that works with SIMD
 vector types (like they provide for float, double, long double), but in practice
