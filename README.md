@@ -186,7 +186,7 @@ allow the code to be used to transform eight datasets packed into the AVX
 single-precision vector type ``__m256`` available as part of the [Intel
 intrinics API](https://software.intel.com/sites/landingpage/IntrinsicsGuide/).
 
-````c++
+````cpp
 #if defined(__AVX__) and defined(__FMA__)
 
 using E = __m256;
@@ -243,8 +243,8 @@ The inputs to the ``r2cf`` codelet are:
   (i.e. ``[0,1,...,N/2]``) while the imaginary array should have ``N/2-1``
   elements starting at one (i.e. ``[1,2,...,N/2-1]``). For N odd the real
   array should have ``(N+1)/2`` addressable elements starting at zero
-  (i.e. ``[0,1,...,(N+1)/2]``), while the imaginary array should have
-  ``(N-1)/2`` addressable elements, starting at one (i.e. ``[1,2,...,(N+1)/2]``).
+  (i.e. ``[0,1,...,(N-1)/2]``), while the imaginary array should have
+  ``(N-1)/2`` addressable elements, starting at one (i.e. ``[1,2,...,(N-1)/2]``).
   In all cases ``Ci[0]`` is untouched by the code, and the user should set it
   to zero if desired. The same is true for ``Ci[N/2]`` in the case when N is
   even.
@@ -257,7 +257,7 @@ The inputs to the ``r2cf`` codelet are:
   followed by each complex element. This can be achieved with something like
   this:
 
-    ````c++
+    ````cpp
     constexpr int N = 60;
     __m256 xt[N]; // input data
     __m256 xf[2*(N/2+1)]; // output array
@@ -274,7 +274,22 @@ The inputs to the ``r2cf`` codelet are:
     ````
 
   The FFTW _half-complex_ format can also be achieved using a negative stride
-  on the imaginary array.
+  on the imaginary array, with something like this:
+
+    ````cpp
+    constexpr int N = 60;
+    __m256 xt[N]; // input data
+    __m256 xf[N]; // output array
+    __m256* R0 = xt;
+    __m256* R1 = xt+1;
+    __m256* Cr = xf;
+    __m256* Ci = xf+N;
+    int rs = 2;
+    int csr = 1;
+    int csi = -1;
+    // call the codelet
+    dft_codelet_r2cf_60(R0, R1, Cr, Ci, rs, csr, csi, ..see..below.. )
+    ````
 
 - The final three parameters allow the codelet to perform multiple transforms
   in a loop in one single call. The ``v`` option specifies how many transforms
