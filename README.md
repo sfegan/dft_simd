@@ -273,8 +273,12 @@ The inputs to the ``r2cf`` codelet are:
     Ci[0] = Ci[N/2 * 2 /* must remember stride ! */] = _mm256_setzero_ps();
     ````
 
-  The FFTW _half-complex_ format can also be achieved using a negative stride
-  on the imaginary array, with something like this:
+  The FFTW [_half-complex_
+  format](http://www.fftw.org/fftw3_doc/The-Halfcomplex_002dformat-DFT.html#The-Halfcomplex_002dformat-DFT)
+  (where all the real DFT amplitudes come first ordered by increasing frequency
+  starting with DC, followed by the imaginary amplitudes in order of decreasing
+  frequency) can also be achieved using a negative stride on the imaginary
+  array, with something like this:
 
     ````cpp
     constexpr int N = 60;
