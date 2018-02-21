@@ -270,7 +270,7 @@ The inputs to the ``r2cf`` codelet are:
     int csr = 2;
     int csi = 2;
     // call the codelet and zero unwritten imaginary components if desired
-    dft_codelet_r2cf_60(R0, R1, Cr, Ci, rs, csr, csi, ... see below ... )
+    dft_codelet_r2cf_60(R0, R1, Cr, Ci, rs, csr, csi, ... see below ... );
     Ci[0] = Ci[N/2 * 2 /* must remember stride ! */] = _mm256_setzero_ps();
     ````
 
@@ -293,7 +293,7 @@ The inputs to the ``r2cf`` codelet are:
     int csr = 1;
     int csi = -1;
     // call the codelet
-    dft_codelet_r2cf_60(R0, R1, Cr, Ci, rs, csr, csi, ..see..below.. )
+    dft_codelet_r2cf_60(R0, R1, Cr, Ci, rs, csr, csi, ... see below ... );
     ````
 
 - The final three parameters allow the codelet to perform multiple transforms
