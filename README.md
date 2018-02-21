@@ -253,9 +253,10 @@ The inputs to the ``r2cf`` codelet are:
   considerable flexibility to the user to lay the arrays out as desired. As
   an example it may be desirable to simply have all the samples in order in one
   array of size ``N``, and return the DFT in an array of size ``2*(N/2+1)``
-  with the _standard layout_ of complex numbers where each real element is
-  followed by each complex element. This can be achieved with something like
-  this:
+  with the [_standard layout_]
+  (http://www.fftw.org/fftw3_doc/Real_002ddata-DFT-Array-Format.html#Real_002ddata-DFT-Array-Format)
+  of complex numbers where each real element is followed by each complex
+  element. This can be achieved with something like this:
 
     ````cpp
     constexpr int N = 60;
