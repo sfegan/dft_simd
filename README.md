@@ -1,13 +1,13 @@
 ## Efficient bulk transformation of short data samples using DFTs ##
 
 __Adapting FFTW scalar codelets to SIMD data types and instructions to achieve
-signifcantly improved DFT performance.__
+significantly improved DFT performance.__
 
 _Stephen Fegan, 2018-02-19_
 
 In many high-energy astronomy and particle physics experiments data consists of
-relatively short digitized waveforms that need to be treated, i.e. filtered and
-analyzed. Often this calls for transformation of the signal into frequency
+relatively short digitised waveforms that need to be treated, i.e. filtered and
+analysed. Often this calls for transformation of the signal into frequency
 domain, and hence starts with a discrete Fourier transform (DFT), possibly
 followed by filtering and an inverse transform. Or perhaps the DFT is used to
 generate the power-spectrum of the signal for diagnostic purposes.
@@ -184,7 +184,7 @@ It is this flexibility that allows the codelets to be trivially used with SIMD
 vector types. For example the following macros or inlines are sufficient to
 allow the code to be used to transform eight datasets packed into the AVX
 single-precision vector type ``__m256`` available as part of the [Intel
-intrinics API](https://software.intel.com/sites/landingpage/IntrinsicsGuide/).
+intrinsics API](https://software.intel.com/sites/landingpage/IntrinsicsGuide/).
 
 ````cpp
 #if defined(__AVX__) and defined(__FMA__)
@@ -344,7 +344,7 @@ transformed into a _vector_ codelet to allow efficient SIMD DFTs to be
 calculated.
 
 This approach is only really feasible for small transformation sizes that can be
-anticpated at compile time, as it requires the codelets be generated and
+anticipated at compile time, as it requires the codelets be generated and
 compiled in advance. Codelets for long transformation sizes are impractical as
 they grow in size by Nlog(N), and will relatively quickly exceed the cache size
 of the CPU, after which their execution will slow. Long transforms should be
