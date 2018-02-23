@@ -305,6 +305,15 @@ The inputs to the ``r2cf`` codelet are:
   as we talk about SIMD vectors, so I try to avoid it). The simplest is to set
   ``v=1`` in which case ``ivs`` and ``ovs`` are irrelevant.
 
+To generate the codelet for the inverse DFT the generator ``gen_r2cb.native``
+should be used, with the option ``-sign 1`` (otherwise the order of the
+output will be reversed). For example to generate the N=3 case use:
+
+````sh
+N=3; ./gen_r2cb.native -n ${N} -sign 1 -standalone -fma -generic-arith \
+  -compact -name dft_codelet_r2cb_${N} > dft_r2cb_${N}.c
+````
+
 The ``dft_simd`` test code in this repository uses the 60-element forward
 real-to-complex DFT codelet to compare with the calls to FFTW in the
 configurations described above. It performs the same number of transforms
