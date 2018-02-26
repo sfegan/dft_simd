@@ -360,7 +360,7 @@ vertical codelets internally.
 
 ### License ###
 
-__dft_simd__ is distributed under the [GPLv2](LICENSE.md) license, although
+__dft_simd__ is distributed under the [GPLv2](LICENSE) license, although
 copyright on the machine-generated portions of the code seems [problematic to
 assert](http://www.wipo.int/wipo_magazine/en/2017/05/article_0003.html). This
 readme is distributed under the terms of the
