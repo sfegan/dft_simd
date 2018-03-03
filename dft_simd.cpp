@@ -68,7 +68,7 @@ TEST(TestDFT, FFTW_Aligned_One)
   float* xf = fftwf_alloc_real(2*(nsamp/2 + 1));
   std::mt19937 core(12345);
   std::uniform_real_distribution<float> gen(0.0,1.0);
-  fftwf_plan plan = fftwf_plan_dft_r2c_1d(nsamp, xt, (fftwf_complex*)xf, FFTW_MEASURE);
+  fftwf_plan plan = fftwf_plan_dft_r2c_1d(nsamp, xt, (fftwf_complex*)xf, FFTW_DESTROY_INPUT|FFTW_MEASURE);
   fftwf_print_plan(plan);
   std::cout << '\n';
   for(int isamp=0;isamp<nsamp;isamp++) {
@@ -94,7 +94,7 @@ TEST(TestDFT, FFTW_MisAligned_One)
   float* xf = fftwf_alloc_real(2*(nsamp/2 + 1)+1) + 1;
   std::mt19937 core(12345);
   std::uniform_real_distribution<float> gen(0.0,1.0);
-  fftwf_plan plan = fftwf_plan_dft_r2c_1d(nsamp, xt, (fftwf_complex*)xf, FFTW_MEASURE);
+  fftwf_plan plan = fftwf_plan_dft_r2c_1d(nsamp, xt, (fftwf_complex*)xf, FFTW_DESTROY_INPUT|FFTW_MEASURE);
   fftwf_print_plan(plan);
   std::cout << '\n';
   for(int isamp=0;isamp<nsamp;isamp++) {
@@ -124,7 +124,7 @@ TEST(TestDFT, FFTW_Aligned_Eight)
   fftwf_plan plan = fftwf_plan_many_dft_r2c(1, &n, nvec,
                             (float*)xt, nullptr, 1, nsamp,
                             (fftwf_complex*)xf, nullptr, 1, nsamp/2 + 1,
-                            FFTW_MEASURE);
+                            FFTW_DESTROY_INPUT|FFTW_MEASURE);
   fftwf_print_plan(plan);
   std::cout << '\n';
   for(int isamp=0;isamp<nsamp*nvec;isamp++) {
@@ -154,7 +154,7 @@ TEST(TestDFT, FFTW_Aligned_TransposedEight)
   fftwf_plan plan = fftwf_plan_many_dft_r2c(1, &n, nvec,
                             (float*)xt, nullptr, nvec, 1,
                             (fftwf_complex*)xf, nullptr, nvec, 1,
-                            FFTW_MEASURE);
+                            FFTW_DESTROY_INPUT|FFTW_MEASURE);
   fftwf_print_plan(plan);
   std::cout << '\n';
   for(int ivec=0;ivec<nvec;ivec++) {
