@@ -214,7 +214,6 @@ inline E FNMS(const E a, const E b, const E c) { return _mm256_fnmadd_ps(a,b,c);
 
 inline void MAKE_VOLATILE_STRIDE(int a, int b) { }
 
-#include "dft_c2c_60.c"
 #include "dft_r2cf_60.c"
 #include "dft_r2cb_60.c"
 
@@ -328,6 +327,88 @@ is probably not too surprising given that the slow FFTW plan used no SIMD
 enhancements (and so a factor of 8 would be expected given the size of the
 AVX vectors), and the fastest plan used some SSE SIMD enhancements, but could
 not used 100% AVX SIMD instructions.
+
+### Loop unrolling ###
+
+Further improvement in performance can potentially be achieved by using the
+standard approach of loop unrolling. Generally loop unrolling techniques reduce
+the number of iterations in a loop by calculating multiple quantities together
+in the loop body. This can improve performance by allowing more registers to be
+used (if a single loop calculation does not use the fill set of registers) and
+increasing the usage of the CPU pipelines (if a single loop calculation does
+not completely fill the pipelines).
+
+Loop unrolling can be applied to the short DFTs codelets by processing multiple
+vector datasets at once. One approach, outlined here, is to change the data type
+from a single vector ``__m256`` to a structure containing multiple vectors, e.g.
+``std::pair<__m256,__m256>``, changing the abstract mathematical operations
+to match. The following method is used in the test code in this repository,
+
+````cpp
+#if defined(__AVX__) and defined(__FMA__)
+using E = std::pair<__m256,__m256>;
+using R = std::pair<__m256,__m256>;
+using INT = int;
+using stride = int;
+
+inline int WS(const stride s, const stride i) { return s*i; }
+
+inline E ADD(const E a, const E b) {  
+  return { _mm256_add_ps(a.first,b.first), _mm256_add_ps(a.second,b.second) }; }
+inline E SUB(const E a, const E b) {
+  return { _mm256_sub_ps(a.first,b.first), _mm256_sub_ps(a.second,b.second) }; }
+inline E MUL(const E a, const E b) {
+  return { _mm256_mul_ps(a.first,b.first), _mm256_mul_ps(a.second,b.second) }; }
+
+inline E NEG(const E a) { return { _mm256_xor_ps(a.first, _mm256_set1_ps(-0.0)),
+    _mm256_xor_ps(a.second, _mm256_set1_ps(-0.0)) }; }
+
+inline E FMA(const E a, const E b, const E c) {
+  return { _mm256_fmadd_ps(a.first,b.first,c.first), _mm256_fmadd_ps(a.second,b.second,c.second) }; }
+inline E FMS(const E a, const E b, const E c) {
+  return { _mm256_fmsub_ps(a.first,b.first,c.first), _mm256_fmsub_ps(a.second,b.second,c.second) }; }
+inline E FNMA(const E a, const E b, const E c) {
+  return { _mm256_fnmsub_ps(a.first,b.first,c.first),
+    _mm256_fnmsub_ps(a.second,b.second,c.second) }; }
+inline E FNMS(const E a, const E b, const E c) {
+  return { _mm256_fnmadd_ps(a.first,b.first,c.first),
+    _mm256_fnmadd_ps(a.second,b.second,c.second) }; }
+
+inline E MUL(const __m256 a, const E b) {
+  return { _mm256_mul_ps(a,b.first), _mm256_mul_ps(a,b.second) }; }
+inline E FMA(const __m256 a, const E b, const E c) {
+  return { _mm256_fmadd_ps(a,b.first,c.first),
+    _mm256_fmadd_ps(a,b.second,c.second) }; }
+inline E FMS(const __m256 a, const E b, const E c) {
+  return { _mm256_fmsub_ps(a,b.first,c.first),
+    _mm256_fmsub_ps(a,b.second,c.second) }; }
+inline E FNMA(const __m256 a, const E b, const E c) {
+  return { _mm256_fnmsub_ps(a,b.first,c.first),
+    _mm256_fnmsub_ps(a,b.second,c.second) }; }
+inline E FNMS(const __m256 a, const E b, const E c) {
+  return { _mm256_fnmadd_ps(a,b.first,c.first),
+    _mm256_fnmadd_ps(a,b.second,c.second) }; }
+
+#define DK(name, val) \
+  static const __m256 name = { (val),(val),(val),(val),(val),(val),(val),(val) }
+
+inline void MAKE_VOLATILE_STRIDE(int a, int b) { }
+
+#include "dft_r2cf_60.c"
+#include "dft_r2cb_60.c"
+#endif // defined(__AVX__) and defined(__FMA__)
+````
+
+The main difference to the non-unrolled code is that two sets of multiply and
+FMA functions are needed, one to handle cases where pairs of vectors are
+multiplied, and a second to handle multiplication by a (vector) constant.
+
+Applying this code to the same test case in which 16.8 million DFTs are
+calculated in 1.05 million calls to the codelet results in the running time:
+
+- SIMD DFT of 16 transforms in 2 AVX vectors per call to 60-sample codelet : __330 ms__.
+
+giving a roughly 20% improvement in running time.
 
 ### Conclusion ###
 
