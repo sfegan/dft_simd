@@ -461,7 +461,8 @@ Intel Core (Broadwell) as described at the top of the page. Here we present the
 results from the eight test cases transforming 16.8 million 60-sample datasets
 on an [``Intel(R) Xeon(R) CPU E5-2650
 v4``](https://ark.intel.com/products/91767/Intel-Xeon-Processor-E5-2650-v4-30M-Cache-2_20-GHz)
-which supports ``AVX2`` and ``FMA``.
+which supports ``AVX2`` and ``FMA``. The system runs ``Linux 3.10.0-693.11.6.el7.x86_64``
+with compiler ``gcc version 4.8.5 20150623 (Red Hat 4.8.5-16)``.
 
 - FFTW3 1 waveform/call, aligned : __2194 ms__
 - FFTW3 1 waveform/call, un-aligned : __3643 ms__
