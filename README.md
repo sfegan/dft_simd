@@ -453,11 +453,6 @@ case where array addresses are know at compile time and where the vector
 pipelines are already basically full. In this case in fact there is a penalty,
 which may be related to register over-use.
 
-However this conclusion may be different on an AVX-512 system, which has more
-registers, or on a system with more pipelines. It may also not be the case with
-even shorter DFT sizes, such as N=16, where perhaps the pipelines/registers
-are less efficiently used.
-
 ### Conclusion ###
 
 For cases where a large number of small DFTs must be performed the approach used
@@ -486,6 +481,15 @@ vector types (like they provide for float, double, long double), but in practice
 it would probably be more useful to the user for them to handle the case of
 multiple DFTs requested through the _advanced_ interface differently, using
 vertical codelets internally.
+
+The conclusions on the tradeoffs of using fixed stride and/or loop unrolling may
+depend strongly on the type of system used, for example an AVX-512 system which
+has more vector registers, or on a system with more scalar or vector pipelines
+than my laptop. It may also strong depend on the compiler, and also also on the
+size of the DFT (I only tested N=60). For example, shorter DFT sizes, such as
+N=16, may not use the  pipelines/registers as efficiently as N=60 and hence
+unrolling may be beneficial. The particular case of interest to the user should
+be studied.
 
 ### License ###
 
