@@ -457,19 +457,20 @@ which may be related to register over-use.
 ### Results on Intel Xeon (Broadwell) ###
 
 All the results given thus far were from running the tests on my laptop, an
-Intel Core (Broadwell) as described at the top of the page. Here we present
-the results from the 8 speed tests on an [``Intel(R) Xeon(R) CPU E5-2650
+Intel Core (Broadwell) as described at the top of the page. Here we present the
+results from the eight test cases transforming 16.8 million 60-sample datasets
+on an [``Intel(R) Xeon(R) CPU E5-2650
 v4``](https://ark.intel.com/products/91767/Intel-Xeon-Processor-E5-2650-v4-30M-Cache-2_20-GHz)
 which supports ``AVX2`` and ``FMA``.
 
-- FFTW3 1-waveform, aligned : __2194 ms__
-- FFTW3 1-waveform, un-aligned : __3643 ms__
-- FFTW3 8-waveforms, aligned : __2264 ms__
-- FFTW3 8-waveforms, aligned and transposed : __2961 ms__
-- AVX codelet, 8-waveform vector : __220 ms__
-- AVX codelet, 8-waveform vector, fixed stride : __229 ms__
-- AVX codelet, 8-waveform vector, unrolled : __296 ms__
-- AVX codelet, 8-waveform vector, unrolled, fixed stride : __297 ms__
+- FFTW3 1 waveform/call, aligned : __2194 ms__
+- FFTW3 1 waveform/call, un-aligned : __3643 ms__
+- FFTW3 8 waveforms/call, aligned : __2264 ms__
+- FFTW3 8 waveforms/call, aligned and transposed : __2961 ms__
+- AVX codelet, 8 waveform SIMD vector : __220 ms__
+- AVX codelet, 8 waveform SIMD vector, fixed stride : __229 ms__
+- AVX codelet, 8 waveform SIMD vector, unrolled 16 waveforms/call : __296 ms__
+- AVX codelet, 8 waveform SIMD vector, unrolled 16 waveforms/call, fixed stride : __297 ms__
 
 On this system the AVX codelet improves performance by a factor of 10 over the
 best case of FFTW3. Here there is no improvement in speed from using a fixed
