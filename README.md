@@ -56,18 +56,18 @@ times on my laptop, a MacBookPro running High Sierra on Intel(R) Core(TM)
 i5-5287U CPU @ 2.90GHz, __which supports AVX2__, with FFTW installed through
 MacPorts, are:
 
-- Single DFT per _execute_, aligned datasets : __1968 ms__. Here the FFTW planner
+- Single DFT per _execute_, aligned datasets : __1925 ms__. Here the FFTW planner
   chose SSE-aware (SIMD) versions of the 5 and 12 sample codelets.
 
-- Single DFT per _execute_, deliberately misaligned datasets : __3260 ms__.
+- Single DFT per _execute_, deliberately misaligned datasets : __3135 ms__.
   Here the planner could not choose the SSE codelets as the data were not
   properly aligned.
 
-- Bulk DFT of 8 transforms per _execute_, aligned datasets : __2013 ms__. The
+- Bulk DFT of 8 transforms per _execute_, aligned datasets : __1912 ms__. The
   planner used the SIMD codelets.
 
 - Bulk DFT of 8 transforms per _execute_, aligned datasets, with the order of
-  the axes transposed : __2688 ms__. Here the planner combined an SIMD
+  the axes transposed : __2563 ms__. Here the planner combined an SIMD
   version of the 12 sample codelet but a scalar version of the 5 sample codelet.
 
 It can be seen that the SIMD plans provide a relatively large improvement in
@@ -319,7 +319,7 @@ configurations described above. It performs the same number of transforms
 (16.7 million) in batches of eight by packing the data into an array of
 SIMD vectors of type ``__m256``. The results are:
 
-- SIMD DFT of 8 transforms per call to 60-sample codelet : __400 ms__.
+- SIMD DFT of 8 transforms per call to 60-sample codelet : __379 ms__.
 
 This code is therefore approximately __five__ times faster than the fastest
 FFTW option, and more than __eight__ times faster than the slowest case. This
@@ -353,7 +353,7 @@ This change hardcodes the stride and moots the values  ``rs``, ``csr`` and
 ``csi``. This single one-line change to the code approximately doubles the speed
 of the test suite on my laptop:
 
-- SIMD DFT of 8 transforms per call to 60-sample codelet with fixed stride: __200 ms__.
+- SIMD DFT of 8 transforms per call to 60-sample codelet with fixed stride: __207 ms__.
 
 Of course this comes at the cost of reduced runtime flexibility. However if the
 flexibility of changing strides is not needed, then the tradeoff would seem
@@ -439,12 +439,12 @@ multiplied, and a second to handle multiplication by a (vector) constant.
 Applying this code to the same test case in which 16.8 million DFTs are
 calculated in 1.05 million calls to the codelet results in the running time:
 
-- SIMD DFT of 16 transforms in 2 AVX vectors per call to 60-sample codelet : __330 ms__.
+- SIMD DFT of 16 transforms in 2 AVX vectors per call to 60-sample codelet : __301 ms__.
 
 giving a roughly 20% improvement over the non-unrolled variable-stride version.
 A fixed-stride version of this unrolled code runs in:
 
-- SIMD DFT of 16 transforms in 2 AVX vectors per call to 60-sample codelet with fixed stride : __230 ms__.
+- SIMD DFT of 16 transforms in 2 AVX vectors per call to 60-sample codelet with fixed stride : __227 ms__.
 
 which is slower than the non-unrolled version with fixed stride above. This
 shows that unrolling helps keep the vector pipelines filled while the CPU waits
@@ -489,7 +489,8 @@ than my laptop. It may also strong depend on the compiler, and also also on the
 size of the DFT (I only tested N=60). For example, shorter DFT sizes, such as
 N=16, may not use the  pipelines/registers as efficiently as N=60 and hence
 unrolling may be beneficial. The particular case of interest to the user should
-be studied.
+be studied. The primary conclusion that the SIMD codelets outperforms FFTW by
+a relatively large factor for short DFTs seems to be robust.
 
 ### License ###
 
