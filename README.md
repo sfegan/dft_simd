@@ -52,9 +52,10 @@ make
 This will run five test cases, each of which transforms 2**24 (16.8 million)
 waveforms. The first four test cases use FFTW, the final one uses a custom SIMD
 transform described below. The four FFTW test cases, along with their running
-times on my laptop, a MacBookPro running High Sierra on Intel(R) Core(TM)
-i5-5287U CPU @ 2.90GHz, __which supports AVX2__, with FFTW installed through
-MacPorts, are:
+times on my laptop, a MacBookPro running High Sierra on [``Intel(R) Core(TM)
+i5-5287U CPU @
+2.90GHz``](https://ark.intel.com/products/84988/Intel-Core-i5-5287U-Processor-3M-Cache-up-to-3_30-GHz),
+__which supports AVX2 and FMA__, with FFTW installed through MacPorts, are:
 
 - Single DFT per _execute_, aligned datasets : __1925 ms__. Here the FFTW planner
   chose SSE-aware (SIMD) versions of the 5 and 12 sample codelets.
@@ -453,6 +454,27 @@ case where array addresses are know at compile time and where the vector
 pipelines are already basically full. In this case in fact there is a penalty,
 which may be related to register over-use.
 
+### Results on Intel Xeon (Broadwell) ###
+
+All the results given thus far were from running the tests on my laptop, an
+Intel Core (Broadwell) as described at the top of the page. Here we present
+the results from the 8 speed tests on an [``Intel(R) Xeon(R) CPU E5-2650
+v4``](https://ark.intel.com/products/91767/Intel-Xeon-Processor-E5-2650-v4-30M-Cache-2_20-GHz)
+which supports ``AVX2`` and ``FMA``.
+
+- FFTW3 1-waveform aligned : __2194 ms__
+- FFTW3 1-waveform un-aligned : __3643 ms__
+- FFTW3 8-waveforms aligned : __2264 ms__
+- FFTW3 8-waveforms aligned (transposed) : __2961 ms__
+- AVX codelet : __220 ms__
+- AVX codelet fixed stride : __229 ms__
+- AVX codelet unrolled : __296 ms__
+- AVX codelet unrolled, fixed stride : __297 ms__
+
+On this system the AVX codelet improves performance by a factor of 10 over the
+best case of FFTW3. Here there is no improvement in speed from using a fixed
+stride code, nor from loop unrolling.
+
 ### Conclusion ###
 
 For cases where a large number of small DFTs must be performed the approach used
@@ -491,11 +513,6 @@ N=16, may not use the  pipelines/registers as efficiently as N=60 and hence
 unrolling may be beneficial. The particular case of interest to the user should
 be studied. The primary conclusion that the SIMD codelets outperforms FFTW by
 a relatively large factor for short DFTs seems to be robust.
-
-
-| DFT type | Laptop | Server |
-| | Intel(R) Core(TM) i5-5287U | Intel(R) Xeon(R) CPU E5-2650 v4 |
-| --- | --- | --- |
 
 ### License ###
 
