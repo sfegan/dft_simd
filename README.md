@@ -328,6 +328,39 @@ enhancements (and so a factor of 8 would be expected given the size of the
 AVX vectors), and the fastest plan used some SSE SIMD enhancements, but could
 not used 100% AVX SIMD instructions.
 
+### Fixed Stride ###
+
+Examining the assembly version of the test code suite (produced ``Apple LLVM
+version 9.0.0 (clang-900.0.39.2)`` on MacOS High Sierra) shows that a
+significant number of instructions are generated at the start of the codelet
+functions to handle the variable real and complex strides that can be specified.
+Since any value of these strides can be specified at runtime the memory
+locations for the elements in input and output data arrays must be calculated
+through a series of scalar integer multiplies, adds and shifts. If the strides
+are known at compile time then these runtime calculations are not needed, and
+represent a relatively large waste of computation time: the vector pipelines
+cannot start to process the DFTs until the scalar pipelines complete the
+computation of the array access memory locations. In the first example we showed
+above the real and complex strides are fixed at ``rs=csr=csi=2``, and we
+can modify the ``WS`` helper function to assume this at compile time by
+changing:
+
+````cpp
+inline int WS(const stride s, const stride i) { return 2*i; }
+````
+
+This change hardcodes the stride and moots the values  ``rs``, ``csr`` and
+``csi``. This single one-line change to the code approximately doubles the speed
+of the test suite on my laptop:
+
+- SIMD DFT of 8 transforms per call to 60-sample codelet with fixed stride: __200 ms__.
+
+Of course this comes at the cost of reduced runtime flexibility. However if the
+flexibility of changing strides is not needed, then the tradeoff would seem
+worth making. Of course, fixed and variable stride versions could easily be
+compiled into the same code a selected at runtime, giving the best of both
+worlds.
+
 ### Loop unrolling ###
 
 Further improvement in performance can potentially be achieved by using the
@@ -408,7 +441,22 @@ calculated in 1.05 million calls to the codelet results in the running time:
 
 - SIMD DFT of 16 transforms in 2 AVX vectors per call to 60-sample codelet : __330 ms__.
 
-giving a roughly 20% improvement in running time.
+giving a roughly 20% improvement over the non-unrolled variable-stride version.
+A fixed-stride version of this unrolled code runs in:
+
+- SIMD DFT of 16 transforms in 2 AVX vectors per call to 60-sample codelet with fixed stride : __230 ms__.
+
+which is slower than the non-unrolled version with fixed stride above. This
+shows that unrolling helps keep the vector pipelines filled while the CPU waits
+for the array addresses to be calculated, but that it is not advantageous in the
+case where array addresses are know at compile time and where the vector
+pipelines are already basically full. In this case in fact there is a penalty,
+which may be related to register over-use.
+
+However this conclusion may be different on an AVX-512 system, which has more
+registers, or on a system with more pipelines. It may also not be the case with
+even shorter DFT sizes, such as N=16, where perhaps the pipelines/registers
+are less efficiently used.
 
 ### Conclusion ###
 
