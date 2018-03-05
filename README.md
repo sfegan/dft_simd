@@ -492,6 +492,7 @@ unrolling may be beneficial. The particular case of interest to the user should
 be studied. The primary conclusion that the SIMD codelets outperforms FFTW by
 a relatively large factor for short DFTs seems to be robust.
 
+
 | DFT type | Laptop | Server |
 | | Intel(R) Core(TM) i5-5287U | Intel(R) Xeon(R) CPU E5-2650 v4 |
 | --- | --- | --- |
