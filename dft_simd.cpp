@@ -243,50 +243,30 @@ TEST(TestDFT, AVX2)
   ::free(xt);
 }
 
-namespace m256_Unroll2_FixedStride {
+namespace m256_FixedStride {
 
-using E = std::pair<__m256,__m256>;
-using R = std::pair<__m256,__m256>;
+using E = __m256;
+using R = __m256;
 using INT = int;
 using stride = int;
 
 inline int WS(const stride s, const stride i) { return 2*i; }
 
-inline E ADD(const E a, const E b) {
-  return { _mm256_add_ps(a.first,b.first), _mm256_add_ps(a.second,b.second) }; }
-inline E SUB(const E a, const E b) {
-  return { _mm256_sub_ps(a.first,b.first), _mm256_sub_ps(a.second,b.second) }; }
-inline E MUL(const E a, const E b) {
-  return { _mm256_mul_ps(a.first,b.first), _mm256_mul_ps(a.second,b.second) }; }
+inline E ADD(const E a, const E b) { return _mm256_add_ps(a,b); }
+inline E SUB(const E a, const E b) { return _mm256_sub_ps(a,b); }
+inline E MUL(const E a, const E b) { return _mm256_mul_ps(a,b); }
 
 //inline E NEG(const E a) { return _mm256_sub_ps(_mm256_setzero_ps(),a); }
-inline E NEG(const E a) {
-  return { _mm256_xor_ps(a.first, _mm256_set1_ps(-0.0)), _mm256_xor_ps(a.second, _mm256_set1_ps(-0.0)) }; }
+inline E NEG(const E a) { return _mm256_xor_ps(a, _mm256_set1_ps(-0.0)); }
 
-inline E FMA(const E a, const E b, const E c) {
-  return { _mm256_fmadd_ps(a.first,b.first,c.first), _mm256_fmadd_ps(a.second,b.second,c.second) }; }
-inline E FMS(const E a, const E b, const E c) {
-  return { _mm256_fmsub_ps(a.first,b.first,c.first), _mm256_fmsub_ps(a.second,b.second,c.second) }; }
+inline E FMA(const E a, const E b, const E c) { return _mm256_fmadd_ps(a,b,c); }
+inline E FMS(const E a, const E b, const E c) { return _mm256_fmsub_ps(a,b,c); }
 // Note: inconsistency between FFTW and Intel intrinsics definitions of FNMA/S
-inline E FNMA(const E a, const E b, const E c) {
-  return { _mm256_fnmsub_ps(a.first,b.first,c.first),_mm256_fnmsub_ps(a.second,b.second,c.second) }; }
-inline E FNMS(const E a, const E b, const E c) {
-  return { _mm256_fnmadd_ps(a.first,b.first,c.first),_mm256_fnmadd_ps(a.second,b.second,c.second) }; }
-
-inline E MUL(const __m256 a, const E b) {
-  return { _mm256_mul_ps(a,b.first), _mm256_mul_ps(a,b.second) }; }
-inline E FMA(const __m256 a, const E b, const E c) {
-  return { _mm256_fmadd_ps(a,b.first,c.first), _mm256_fmadd_ps(a,b.second,c.second) }; }
-inline E FMS(const __m256 a, const E b, const E c) {
-  return { _mm256_fmsub_ps(a,b.first,c.first), _mm256_fmsub_ps(a,b.second,c.second) }; }
-// Note: inconsistency between FFTW and Intel intrinsics definitions of FNMA/S
-inline E FNMA(const __m256 a, const E b, const E c) {
-  return { _mm256_fnmsub_ps(a,b.first,c.first),_mm256_fnmsub_ps(a,b.second,c.second) }; }
-inline E FNMS(const __m256 a, const E b, const E c) {
-  return { _mm256_fnmadd_ps(a,b.first,c.first),_mm256_fnmadd_ps(a,b.second,c.second) }; }
+inline E FNMA(const E a, const E b, const E c) { return _mm256_fnmsub_ps(a,b,c); }
+inline E FNMS(const E a, const E b, const E c) { return _mm256_fnmadd_ps(a,b,c); }
 
 #define DK(name, val) \
-  static const __m256 name = { (val),(val),(val),(val),(val),(val),(val),(val) }
+  static const E name = { (val),(val),(val),(val),(val),(val),(val),(val) }
 
 inline void MAKE_VOLATILE_STRIDE(int a, int b) { }
 
@@ -298,29 +278,25 @@ inline void MAKE_VOLATILE_STRIDE(int a, int b) { }
 
 } // namespace m256
 
-TEST(TestDFT, AVX2_Unroll2_FixedStride)
+TEST(TestDFT, AVX2_FixedStride)
 {
-  std::pair<__m256,__m256>* xt = nullptr;
-  std::pair<__m256,__m256>* xf;
-  ::posix_memalign((void**)&xt, 32, 2*nvec*nsamp*sizeof(float));
-  ::posix_memalign((void**)&xf, 32, 2*nvec*2*(nsamp/2+1)*sizeof(float));
-  for(unsigned i=0;i<2*(nsamp/2+1);i++)
-    xf[i].first = xf[i].second = _mm256_setzero_ps();
+  __m256* xt = nullptr;
+  __m256* xf;
+  ::posix_memalign((void**)&xt, 32, nvec*nsamp*sizeof(float));
+  ::posix_memalign((void**)&xf, 32, nvec*2*(nsamp/2+1)*sizeof(float));
+  for(unsigned i=0;i<2*(nsamp/2+1);i++)xf[i] = _mm256_setzero_ps();
   std::mt19937 core(12345);
   std::uniform_real_distribution<float> gen(0.0,1.0);
   for(int ivec=0;ivec<nvec;ivec++) {
     for(int isamp=0;isamp<nsamp;isamp++) {
-      xt[isamp].first[ivec] = gen(core);
-    }
-    for(int isamp=0;isamp<nsamp;isamp++) {
-      xt[isamp].second[ivec] = gen(core);
+      xt[isamp][ivec] = gen(core);
     }
   }
-  for(int iloop=0; iloop<nloop/2; iloop++) {
-    m256_Unroll2_FixedStride::dft_codelet_r2cf_60(xt, xt+1, xf, xf+1, 0, 0, 0, 1, 0, 0);
+  for(int iloop=0; iloop<nloop; iloop++) {
+    m256_FixedStride::dft_codelet_r2cf_60(xt, xt+1, xf, xf+1, 2, 2, 2, 1, 0, 0);
     if(iloop==0) {
       for(int ifreq=0;ifreq<2*(nsamp/2 + 1);ifreq++) {
-        std::cout << xf[ifreq].first[0] << ' ';
+        std::cout << xf[ifreq][0] << ' ';
       }
       std::cout << '\n';
     }
@@ -404,6 +380,92 @@ TEST(TestDFT, AVX2_Unroll2)
   }
   for(int iloop=0; iloop<nloop/2; iloop++) {
     m256_Unroll2::dft_codelet_r2cf_60(xt, xt+1, xf, xf+1, 2, 2, 2, 1, 0, 0);
+    if(iloop==0) {
+      for(int ifreq=0;ifreq<2*(nsamp/2 + 1);ifreq++) {
+        std::cout << xf[ifreq].first[0] << ' ';
+      }
+      std::cout << '\n';
+    }
+  }
+  ::free(xf);
+  ::free(xt);
+}
+
+namespace m256_Unroll2_FixedStride {
+
+using E = std::pair<__m256,__m256>;
+using R = std::pair<__m256,__m256>;
+using INT = int;
+using stride = int;
+
+inline int WS(const stride s, const stride i) { return 2*i; }
+
+inline E ADD(const E a, const E b) {
+  return { _mm256_add_ps(a.first,b.first), _mm256_add_ps(a.second,b.second) }; }
+inline E SUB(const E a, const E b) {
+  return { _mm256_sub_ps(a.first,b.first), _mm256_sub_ps(a.second,b.second) }; }
+inline E MUL(const E a, const E b) {
+  return { _mm256_mul_ps(a.first,b.first), _mm256_mul_ps(a.second,b.second) }; }
+
+//inline E NEG(const E a) { return _mm256_sub_ps(_mm256_setzero_ps(),a); }
+inline E NEG(const E a) {
+  return { _mm256_xor_ps(a.first, _mm256_set1_ps(-0.0)), _mm256_xor_ps(a.second, _mm256_set1_ps(-0.0)) }; }
+
+inline E FMA(const E a, const E b, const E c) {
+  return { _mm256_fmadd_ps(a.first,b.first,c.first), _mm256_fmadd_ps(a.second,b.second,c.second) }; }
+inline E FMS(const E a, const E b, const E c) {
+  return { _mm256_fmsub_ps(a.first,b.first,c.first), _mm256_fmsub_ps(a.second,b.second,c.second) }; }
+// Note: inconsistency between FFTW and Intel intrinsics definitions of FNMA/S
+inline E FNMA(const E a, const E b, const E c) {
+  return { _mm256_fnmsub_ps(a.first,b.first,c.first),_mm256_fnmsub_ps(a.second,b.second,c.second) }; }
+inline E FNMS(const E a, const E b, const E c) {
+  return { _mm256_fnmadd_ps(a.first,b.first,c.first),_mm256_fnmadd_ps(a.second,b.second,c.second) }; }
+
+inline E MUL(const __m256 a, const E b) {
+  return { _mm256_mul_ps(a,b.first), _mm256_mul_ps(a,b.second) }; }
+inline E FMA(const __m256 a, const E b, const E c) {
+  return { _mm256_fmadd_ps(a,b.first,c.first), _mm256_fmadd_ps(a,b.second,c.second) }; }
+inline E FMS(const __m256 a, const E b, const E c) {
+  return { _mm256_fmsub_ps(a,b.first,c.first), _mm256_fmsub_ps(a,b.second,c.second) }; }
+// Note: inconsistency between FFTW and Intel intrinsics definitions of FNMA/S
+inline E FNMA(const __m256 a, const E b, const E c) {
+  return { _mm256_fnmsub_ps(a,b.first,c.first),_mm256_fnmsub_ps(a,b.second,c.second) }; }
+inline E FNMS(const __m256 a, const E b, const E c) {
+  return { _mm256_fnmadd_ps(a,b.first,c.first),_mm256_fnmadd_ps(a,b.second,c.second) }; }
+
+#define DK(name, val) \
+  static const __m256 name = { (val),(val),(val),(val),(val),(val),(val),(val) }
+
+inline void MAKE_VOLATILE_STRIDE(int a, int b) { }
+
+//#include "dft_c2c_60.c"
+#include "dft_r2cf_60.c"
+#include "dft_r2cb_60.c"
+
+#undef DK
+
+} // namespace m256
+
+TEST(TestDFT, AVX2_Unroll2_FixedStride)
+{
+  std::pair<__m256,__m256>* xt = nullptr;
+  std::pair<__m256,__m256>* xf;
+  ::posix_memalign((void**)&xt, 32, 2*nvec*nsamp*sizeof(float));
+  ::posix_memalign((void**)&xf, 32, 2*nvec*2*(nsamp/2+1)*sizeof(float));
+  for(unsigned i=0;i<2*(nsamp/2+1);i++)
+    xf[i].first = xf[i].second = _mm256_setzero_ps();
+  std::mt19937 core(12345);
+  std::uniform_real_distribution<float> gen(0.0,1.0);
+  for(int ivec=0;ivec<nvec;ivec++) {
+    for(int isamp=0;isamp<nsamp;isamp++) {
+      xt[isamp].first[ivec] = gen(core);
+    }
+    for(int isamp=0;isamp<nsamp;isamp++) {
+      xt[isamp].second[ivec] = gen(core);
+    }
+  }
+  for(int iloop=0; iloop<nloop/2; iloop++) {
+    m256_Unroll2_FixedStride::dft_codelet_r2cf_60(xt, xt+1, xf, xf+1, 0, 0, 0, 1, 0, 0);
     if(iloop==0) {
       for(int ifreq=0;ifreq<2*(nsamp/2 + 1);ifreq++) {
         std::cout << xf[ifreq].first[0] << ' ';
