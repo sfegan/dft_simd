@@ -1,0 +1,100 @@
+# Build script for Travis CI container-based architecture
+# Stephen Fegan - sfegan@llr.in2p3.fr - 2015-11-01
+
+dist: trusty
+sudo: false
+language: cpp
+
+addons:
+  apt:
+    sources: &common_sources
+    - ubuntu-toolchain-r-test
+    packages: &common_packages
+    - libfftw3-dev
+
+matrix:
+  include:
+    - compiler: gcc-4.9
+      env: BUILD_TYPE=Release BUILD_CC=gcc-4.9 BUILD_CXX=g++-4.9
+      addons: &gcc49_addons
+        apt:
+          sources:
+          - *common_sources
+          packages:
+          - *common_packages
+          - g++-4.9
+    - compiler: gcc-5
+      env: BUILD_TYPE=Release BUILD_CC=gcc-5 BUILD_CXX=g++-5
+      addons: &gcc5_addons
+        apt:
+          sources:
+          - *common_sources
+          packages:
+          - *common_packages
+          - g++-5
+    - compiler: gcc-6
+      env: BUILD_TYPE=Release BUILD_CC=gcc-6 BUILD_CXX=g++-6
+      addons: &gcc6_addons
+        apt:
+          sources:
+          - *common_sources
+          packages:
+          - *common_packages
+          - g++-6
+    - compiler: gcc-7
+      env: BUILD_TYPE=Release BUILD_CC=gcc-7 BUILD_CXX=g++-7
+      addons: &gcc7_addons
+        apt:
+          sources:
+          - *common_sources
+          packages:
+          - *common_packages
+          - g++-7
+    - compiler: clang-3.9
+      env: BUILD_TYPE=Release BUILD_CC=clang-3.9 BUILD_CXX=clang++-3.9
+      addons: &clang39_addons
+        apt:
+          sources:
+          - *common_sources
+          - llvm-toolchain-trusty-3.9
+          packages:
+          - *common_packages
+          - clang-3.9
+    - compiler: clang-4.0
+      env: BUILD_TYPE=Release GEANT4=FALSE BUILD_CC=clang-4.0 BUILD_CXX=clang++-4.0
+      addons: &clang40_addons
+        apt:
+          sources:
+          - *common_sources
+          - llvm-toolchain-trusty-4.0
+          packages:
+          - *common_packages
+          - clang-4.0
+    - compiler: clang-5.0
+      env: BUILD_TYPE=Release BUILD_CC=clang-5.0 BUILD_CXX=clang++-5.0
+      addons: &clang50_addons
+        apt:
+          sources:
+          - *common_sources
+          - llvm-toolchain-trusty-5.0
+          packages:
+          - *common_packages
+          - clang-5.0
+
+before_install:
+  - if test -n "$BUILD_CC"; then export CC="$BUILD_CC"; fi
+  - if test -n "$BUILD_CXX"; then export CXX="$BUILD_CXX"; fi
+
+before_script:
+  - cmake -version
+  - $CC -v
+
+script:
+  - |
+    mkdir mybuild-travis &&
+    cd mybuild-travis &&
+    cmake -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          .. &&
+    make -j3 &&
+    ./dft_simd
