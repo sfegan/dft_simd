@@ -188,6 +188,7 @@ inline __m256 ADD(const __m256& a, const __m256& b) { return _mm256_add_ps(a,b);
 inline __m256 SUB(const __m256& a, const __m256& b) { return _mm256_sub_ps(a,b); }
 inline __m256 MUL(const __m256& a, const __m256& b) { return _mm256_mul_ps(a,b); }
 
+//inline __m256 NEG(const __m256& a) { return _mm256_sub_ps(_mm256_setzero_ps(),a); }
 inline __m256 NEG(const __m256& a) { return _mm256_xor_ps(a, _mm256_set1_ps(-0.0)); }
 
 #if defined(__FMA__)
@@ -218,7 +219,6 @@ inline std::pair<__m256,__m256> SUB(const std::pair<__m256,__m256>& a, const std
 inline std::pair<__m256,__m256> MUL(const std::pair<__m256,__m256>& a, const std::pair<__m256,__m256>& b) {
   return { MUL(a.first,b.first), MUL(a.second,b.second) }; }
 
-//inline E NEG(const E a) { return _mm256_sub_ps(_mm256_setzero_ps(),a); }
 inline std::pair<__m256,__m256> NEG(const std::pair<__m256,__m256>& a) {
   return { NEG(a.first), NEG(a.second) }; }
 
@@ -244,7 +244,7 @@ inline std::pair<__m256,__m256> FNMS(const __m256& a, const std::pair<__m256,__m
   return { FNMS(a,b.first,c.first), FNMS(a,b.second,c.second) }; }
 
 #define DK(name, val) \
-  static const __m256& name = { (val),(val),(val),(val),(val),(val),(val),(val) }
+  static const __m256 name = { (val),(val),(val),(val),(val),(val),(val),(val) }
 
 inline void MAKE_VOLATILE_STRIDE(int a, int b) { }
 
