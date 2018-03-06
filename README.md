@@ -3,7 +3,7 @@
 __Adapting FFTW scalar codelets to SIMD data types and instructions to achieve
 significantly improved DFT performance.__
 
-_Stephen Fegan, 2018-02-19_
+_Stephen Fegan, LLR/Ecole Polytechnique, 2018-02-19_
 
 In many high-energy astronomy and particle physics experiments data consists of
 relatively short digitised waveforms that need to be treated, i.e. filtered and
