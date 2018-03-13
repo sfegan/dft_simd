@@ -454,7 +454,30 @@ case where array addresses are know at compile time and where the vector
 pipelines are already basically full. In this case in fact there is a penalty,
 which may be related to register over-use.
 
-### Running codelet on GPUs with OpenCL ###
+### Results on Intel Xeon (Broadwell) ###
+
+All the results given thus far were from running the tests on my laptop, an
+Intel Core (Broadwell) as described at the top of the page. Here we present the
+results from the eight test cases transforming 16.8 million 60-sample datasets
+on an [``Intel(R) Xeon(R) CPU E5-2650
+v4``](https://ark.intel.com/products/91767/Intel-Xeon-Processor-E5-2650-v4-30M-Cache-2_20-GHz)
+which supports ``AVX2`` and ``FMA``. The system runs ``Linux 3.10.0-693.11.6.el7.x86_64``
+with compiler ``gcc version 4.8.5 20150623 (Red Hat 4.8.5-16)``.
+
+- FFTW3 1 waveform/call, aligned : __2194 ms__
+- FFTW3 1 waveform/call, un-aligned : __3643 ms__
+- FFTW3 8 waveforms/call, aligned : __2264 ms__
+- FFTW3 8 waveforms/call, aligned and transposed : __2961 ms__
+- AVX codelet, 8 waveform SIMD vector : __220 ms__
+- AVX codelet, 8 waveform SIMD vector, fixed stride : __229 ms__
+- AVX codelet, 8 waveform SIMD vector, unrolled 16 waveforms/call : __296 ms__
+- AVX codelet, 8 waveform SIMD vector, unrolled 16 waveforms/call, fixed stride : __297 ms__
+
+On this system the AVX codelet improves performance by a factor of 10 over the
+best case of FFTW3. Here there is no improvement in speed from using a fixed
+stride code, nor from loop unrolling.
+
+### Running DFT codelets on GPUs with OpenCL ###
 
 Since the FFTW codelet is just a simple C function it can also be relatively
 easily adapted to GPUs by integrating into an OpenCL kernel. The snippet below
@@ -485,28 +508,18 @@ void __kernel simple_dft(__global float* xt, __global float* xf) {
 }
 ````
 
-### Results on Intel Xeon (Broadwell) ###
+Running this test code on an Early 2015-era MacBook Pro equipped with an on-CPU
+``Intel(R) Iris(TM) Graphics 6100`` GPU, which supports 48 compute units results
+in the following execution time:
 
-All the results given thus far were from running the tests on my laptop, an
-Intel Core (Broadwell) as described at the top of the page. Here we present the
-results from the eight test cases transforming 16.8 million 60-sample datasets
-on an [``Intel(R) Xeon(R) CPU E5-2650
-v4``](https://ark.intel.com/products/91767/Intel-Xeon-Processor-E5-2650-v4-30M-Cache-2_20-GHz)
-which supports ``AVX2`` and ``FMA``. The system runs ``Linux 3.10.0-693.11.6.el7.x86_64``
-with compiler ``gcc version 4.8.5 20150623 (Red Hat 4.8.5-16)``.
+- Enqueuing of 16.8M DFTs calls to 60-sample codelet kernel with fixed stride : __835 ms__.
 
-- FFTW3 1 waveform/call, aligned : __2194 ms__
-- FFTW3 1 waveform/call, un-aligned : __3643 ms__
-- FFTW3 8 waveforms/call, aligned : __2264 ms__
-- FFTW3 8 waveforms/call, aligned and transposed : __2961 ms__
-- AVX codelet, 8 waveform SIMD vector : __220 ms__
-- AVX codelet, 8 waveform SIMD vector, fixed stride : __229 ms__
-- AVX codelet, 8 waveform SIMD vector, unrolled 16 waveforms/call : __296 ms__
-- AVX codelet, 8 waveform SIMD vector, unrolled 16 waveforms/call, fixed stride : __297 ms__
-
-On this system the AVX codelet improves performance by a factor of 10 over the
-best case of FFTW3. Here there is no improvement in speed from using a fixed
-stride code, nor from loop unrolling.
+This is faster than the native FFTW implementation, but slower than the SIMD
+codelets running on the CPU. It shows that running the codelets on GPUs may
+provide a useful tool to perform bulk DFTs. On a HPC-grade GPU with thousands of
+compute cores there is reason to believe this approach may significantly
+out-perform the generic CPU. I hope to have access to such a machine in the
+future.
 
 ### Conclusion ###
 
