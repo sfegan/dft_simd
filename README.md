@@ -1,7 +1,7 @@
 ## Efficient bulk transformation of short data samples using DFTs ##
 
-__Adapting FFTW scalar codelets to SIMD data types and instructions or to OpenCL
-to achieve significantly improved DFT performance.__
+__Adapting FFTW scalar codelets to CPU SIMD data types and instructions or to
+GPUs uing OpenCL to achieve significantly improved DFT performance.__
 
 _Stephen Fegan, LLR/Ecole Polytechnique, 2018-02-19_
 
