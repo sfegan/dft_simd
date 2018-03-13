@@ -512,7 +512,9 @@ Running this test code on an Early 2015-era MacBook Pro equipped with an on-CPU
 ``Intel(R) Iris(TM) Graphics 6100`` GPU, which supports 48 compute units results
 in the following execution time:
 
-- Enqueuing of 16.8M DFTs calls to 60-sample codelet kernel with fixed stride : __835 ms__.
+- Enqueuing of 16.8M DFTs calls to 60-sample codelet kernel with fixed
+stride : __835 ms__ (of which 130 ms is run-time compilation of the GPU code
+and would likely be amortised in bulk use of the program).
 
 This is faster than the native FFTW implementation, but slower than the SIMD
 codelets running on the CPU. It shows that running the codelets on GPUs may
