@@ -461,7 +461,7 @@ TEST(TestDFT, OpenCL)
     "#define FNMA(a,b,c) (-fma((a),(b),(c)))\n"
     "#define FNMS(a,b,c) fma(-(a),(b),(c))\n"
     "#define WS(s,i) (2*(i))\n"
-    "#define DK(name, val) float name = val\n"
+    "#define DK(name, val) const float name = val\n"
     "#define MAKE_VOLATILE_STRIDE(a, b) 1\n"
     "#include \"../dft_r2cf_60.c\"\n"
     "void __kernel simple_dft(__global float* xt, __global float* xf) {\n"

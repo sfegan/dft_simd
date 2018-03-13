@@ -500,7 +500,7 @@ this on OpenCL under MacOS can be seen in the test case of ``dft_simd.cpp``.
 #define FNMA(a,b,c) (-fma((a),(b),(c)))
 #define FNMS(a,b,c) fma(-(a),(b),(c))
 #define WS(s,i) (2*(i))
-#define DK(name, val) float name = val
+#define DK(name, val) const float name = val
 #define MAKE_VOLATILE_STRIDE(a, b) 1
 #include "dft_r2cf_60.c"
 void __kernel simple_dft(__global float* xt, __global float* xf) {
