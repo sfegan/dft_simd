@@ -416,6 +416,106 @@ TEST(TestDFT, AVX2_Unroll2_FixedStride)
 
 #endif
 
+#ifdef HAVE_OPENCL
+#include"cl.hpp"
+TEST(TestDFT, OpenCL)
+{
+  // get all platforms (drivers), e.g. NVIDIA
+  std::vector<cl::Platform> all_platforms;
+  cl::Platform::get(&all_platforms);
+  EXPECT_GT(all_platforms.size(), 0);
+
+  cl::Platform default_platform=all_platforms[0];
+  std::cout << "Using platform: "<<default_platform.getInfo<CL_PLATFORM_NAME>()<<"\n";
+
+  // get default device (CPUs, GPUs) of the default platform
+  std::vector<cl::Device> all_devices;
+  default_platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
+  EXPECT_GT(all_devices.size(), 0);
+
+  // use device[1] because that's a GPU; device[0] is the CPU
+  cl::Device default_device=all_devices[1];
+  std::cout<< "Using device: "<<default_device.getInfo<CL_DEVICE_NAME>()<<"\n";
+
+  // a context is like a "runtime link" to the device and platform;
+  // i.e. communication is possible
+  cl::Context context({default_device});
+
+  // create the program that we want to execute on the device
+  cl::Program::Sources sources;
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
+  std::string kernel_code=
+    "#define E float\n"
+    "#define R __global float\n"
+    "#define INT int\n"
+    "#define stride int\n"
+    "#define ADD(a,b) ((a)+(b))\n"
+    "#define SUB(a,b) ((a)-(b))\n"
+    "#define MUL(a,b) ((a)*(b))\n"
+    "#define NEG(a) (-(a))\n"
+    "#define FMA(a,b,c) fma((a),(b),(c))\n"
+    "#define FMS(a,b,c) fma((a),(b),-(c))\n"
+    "#define FNMA(a,b,c) (-fma((a),(b),(c)))\n"
+    "#define FNMS(a,b,c) fma(-(a),(b),(c))\n"
+    "#define WS(s,i) (2*(i))\n"
+    "#define DK(name, val) float name = val\n"
+    "#define MAKE_VOLATILE_STRIDE(a, b) 1\n"
+    "#include \"../dft_r2cf_60.c\"\n"
+    "void __kernel simple_dft(__global float* xt, __global float* xf) {\n"
+    "  dft_codelet_r2cf_60(xt, xt+1, xf, xf+1, 0, 0, 0, 1, 0, 0);\n"
+    "}\n";
+
+  //std::cout << kernel_code;
+  sources.push_back({kernel_code.c_str(), kernel_code.length()});
+
+  cl::Program program(context, sources);
+  if (program.build({default_device}) != CL_SUCCESS) {
+      std::cout << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(default_device) << std::endl;
+      exit(1);
+  }
+
+  // create buffers on device (allocate space on GPU)
+  cl::Buffer buffer_xt(context, CL_MEM_READ_WRITE, sizeof(float) * nsamp);
+  cl::Buffer buffer_xf(context, CL_MEM_READ_WRITE, sizeof(float) * (2*(nsamp/2)+1));
+
+  // create things on here (CPU)
+  float* xt = fftwf_alloc_real(nsamp);
+  float* xf = fftwf_alloc_real(2*(nsamp/2 + 1));
+  std::mt19937 core(12345);
+  std::uniform_real_distribution<float> gen(0.0,1.0);
+
+  for(int isamp=0;isamp<nsamp;isamp++) {
+    xt[isamp] = gen(core);
+  }
+  for(int ifreq=0;ifreq<2*(nsamp/2+1);ifreq++) {
+    xf[ifreq] = 0;
+  }
+
+  // create a queue (a queue of commands that the GPU will execute)
+  cl::CommandQueue queue(context, default_device);
+
+  // push write commands to queue
+  queue.enqueueWriteBuffer(buffer_xt, CL_TRUE, 0, sizeof(float) * nsamp, xt);
+  queue.enqueueWriteBuffer(buffer_xf, CL_TRUE, 0, sizeof(float) * 2*(nsamp/2+1), xf);
+
+  // RUN ZE KERNEL
+  cl::make_kernel<cl::Buffer, cl::Buffer> simple_dft(cl::Kernel(program, "simple_dft"));
+  cl::EnqueueArgs eargs(queue, cl::NDRange(nloop*nvec), cl::NullRange);
+  simple_dft(eargs, buffer_xt, buffer_xf);
+
+  // read result from GPU to here
+  queue.enqueueReadBuffer(buffer_xf, CL_TRUE, 0, sizeof(float) * (2*(nsamp/2)+1), xf);
+
+  for(int ifreq=0;ifreq<2*(nsamp/2 + 1);ifreq++) {
+    std::cout << xf[ifreq] << ' ';
+  }
+  std::cout << '\n';
+}
+#endif
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

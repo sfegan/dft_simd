@@ -1,7 +1,7 @@
 ## Efficient bulk transformation of short data samples using DFTs ##
 
-__Adapting FFTW scalar codelets to SIMD data types and instructions to achieve
-significantly improved DFT performance.__
+__Adapting FFTW scalar codelets to SIMD data types and instructions or to OpenCL
+to achieve significantly improved DFT performance.__
 
 _Stephen Fegan, LLR/Ecole Polytechnique, 2018-02-19_
 
@@ -453,6 +453,37 @@ for the array addresses to be calculated, but that it is not advantageous in the
 case where array addresses are know at compile time and where the vector
 pipelines are already basically full. In this case in fact there is a penalty,
 which may be related to register over-use.
+
+### Running codelet on GPUs with OpenCL ###
+
+Since the FFTW codelet is just a simple C function it can also be relatively
+easily adapted to GPUs by integrating into an OpenCL kernel. The snippet below
+shows an extremely naive OpenCL test program that is used here to evaluate the
+performance of the codelet under OpenCL. The program is very little more than a
+few defines and a trivial kernel to call the codelet. The driver code that runs
+this on OpenCL under MacOS can be seen in the test case of ``dft_simd.cpp``.
+
+````c
+#define E float
+#define R __global float
+#define INT int
+#define stride int
+#define ADD(a,b) ((a)+(b))
+#define SUB(a,b) ((a)-(b))
+#define MUL(a,b) ((a)*(b))
+#define NEG(a) (-(a))
+#define FMA(a,b,c) fma((a),(b),(c))
+#define FMS(a,b,c) fma((a),(b),-(c))
+#define FNMA(a,b,c) (-fma((a),(b),(c)))
+#define FNMS(a,b,c) fma(-(a),(b),(c))
+#define WS(s,i) (2*(i))
+#define DK(name, val) float name = val
+#define MAKE_VOLATILE_STRIDE(a, b) 1
+#include "dft_r2cf_60.c"
+void __kernel simple_dft(__global float* xt, __global float* xf) {
+  dft_codelet_r2cf_60(xt, xt+1, xf, xf+1, 0, 0, 0, 1, 0, 0);
+}
+````
 
 ### Results on Intel Xeon (Broadwell) ###
 

@@ -40,6 +40,14 @@ find_package(FFTW REQUIRED)
 include_directories(${FFTW_INCLUDE_DIRS})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${FFTW_LIBRARIES} )
 
+## Find OpenCL libraries
+find_package(OpenCL)
+if(OpenCL_FOUND)
+	include_directories(${OpenCL_INCLUDE_DIRS})
+	set(EXTRA_LIBS ${EXTRA_LIBS} ${OpenCL_LIBRARIES} )
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_OPENCL=1")
+endif()
+
 # ========================================== #
 # Add the subdirectories to the build system #
 # ========================================== #
@@ -50,4 +58,4 @@ include_directories(gtest-1.8.0/include)
 set(GTEST_BOTH_LIBRARIES gtest gtest_main)
 
 add_executable(dft_simd dft_simd)
-target_link_libraries(dft_simd ${FFTW_LIBRARIES} ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(dft_simd ${EXTRA_LIBS} ${GTEST_BOTH_LIBRARIES})
