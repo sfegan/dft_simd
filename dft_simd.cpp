@@ -444,9 +444,6 @@ TEST(TestDFT, OpenCL)
   // create the program that we want to execute on the device
   cl::Program::Sources sources;
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-
   std::string kernel_code=
     "#define E float\n"
     "#define R __global float\n"
