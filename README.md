@@ -116,12 +116,19 @@ the three generators of primary interest here are:
 
 The generators can be compiled using the ``ocmlbuild`` compiler that is
 available on MacPorts (package
-[ocaml-ocamlbuild](https://www.macports.org/ports.php?by=library&substr=ocaml-ocamlbuild)).
+[ocaml-ocamlbuild](https://www.macports.org/ports.php?by=library&substr=ocaml-ocamlbuild)
+and ocaml-num).
 To build the code generators try:
 
 ````sh
 ocamlbuild -classic-display -libs unix,nums gen_r2cf.native gen_r2cb.native gen_notw.ml
 ````
+Revisiting this in 2025 I need to do:
+
+````sh
+ocamlbuild -use-ocamlfind -pkg unix -pkg num gen_r2cf.native gen_r2cb.native gen_twiddle.native gen_notw.native
+````
+
 
 As a first example of using the generators we can build a codelet for a 3-sample
 real-to-complex (forward) DFT by running:
