@@ -126,7 +126,7 @@ ocamlbuild -classic-display -libs unix,nums gen_r2cf.native gen_r2cb.native gen_
 Revisiting this in 2025 I need to do:
 
 ````sh
-ocamlbuild -use-ocamlfind -pkg unix -pkg num gen_r2cf.native gen_r2cb.native gen_twiddle.native gen_notw.native
+ocamlbuild -use-ocamlfind -pkg unix -pkg num gen_r2cf.native gen_r2cb.native gen_twiddle.native gen_notw.native gen_hc2hc.native
 ````
 
 
