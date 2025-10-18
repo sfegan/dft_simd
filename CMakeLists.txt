@@ -62,3 +62,6 @@ target_link_libraries(dft_simd ${EXTRA_LIBS} ${GTEST_BOTH_LIBRARIES})
 
 add_executable(dft_simd_1024 dft_simd_1024)
 target_link_libraries(dft_simd_1024 ${EXTRA_LIBS} ${GTEST_BOTH_LIBRARIES})
+
+add_executable(dft_simd_1024_avx512 dft_simd_1024_avx512)
+target_link_libraries(dft_simd_1024_avx512 ${EXTRA_LIBS} ${GTEST_BOTH_LIBRARIES})
