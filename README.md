@@ -9,11 +9,14 @@ _Stephen Fegan, LLR/Ecole Polytechnique, 2018-02-19_
 
 Added test of 1024 point codelet with AVX2 and AVX512. The
 codelet is much more complex than the 60 point case tested originally, taking 
-significantly longer to generate using the CAML codelet generator (which must 
+significantly longer to generate using the CAML codelet generator (which need 
 only be done once), and to compile. In my test it runs more than twice as fast 
-as using the FFTW API.
+as using the FFTW API. 
 
-Run times on AMD EPYC 9474F 48-Core processor
+The results of the various test cases run on an AMD EPYC 9474F 48-Core processor 
+are given below. In the 60-sample case the AVX2 codelet runs ten times faster than
+using the FFW API. For the 1024-sample case the AVX2 codelet is about 1.6 times 
+faster than the API, while the AVX512 case is 2.3 times faster.
 
 | Test case                       | 60 sample AVX2  | 1024 sample AVX2 | 1024 sample AVX512 |
 | ------------------------------- | --------------- | ---------------- | ------------------ |
