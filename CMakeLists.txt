@@ -13,7 +13,8 @@
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 # A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-cmake_minimum_required(VERSION 3.3)
+#cmake_minimum_required(VERSION 4.1)
+cmake_minimum_required(VERSION 3.5)
 project(dft_simd)
 enable_testing()
 
