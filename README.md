@@ -5,12 +5,28 @@ GPUs uing OpenCL to achieve significantly improved DFT performance.__
 
 _Stephen Fegan, LLR/Ecole Polytechnique, 2018-02-19_
 
-> [!NOTE]
-> __Update 2025:__ Added test of 1024 point codelet with AVX2 and AVX512. The
-> codelet is much more complex than the 60 point case tested originally, taking 
-> significantly longer to generate using the CAML codelet generator (which must 
-> only be done once), and to compile. In my test it runs more than twice as fast 
-> as using the FFTW API.
+## Update 2025
+
+Added test of 1024 point codelet with AVX2 and AVX512. The
+codelet is much more complex than the 60 point case tested originally, taking 
+significantly longer to generate using the CAML codelet generator (which must 
+only be done once), and to compile. In my test it runs more than twice as fast 
+as using the FFTW API.
+
+Run times on AMD EPYC 9474F 48-Core processor
+
+| Test case                       | 60 sample AVX2  | 1024 sample AVX2 | 1024 sample AVX512 |
+| ------------------------------- | --------------- | ---------------- | ------------------ |
+| FFTW_Aligned_One                |          858 ms |        12,136 ms |          24,657 ms |
+| FFTW_MisAligned_One             |        1,482 ms |        36,244 ms |          68,664 ms |
+| FFTW_Aligned_Eight              |          859 ms |        13,637 ms |          27,441 ms |
+| FFTW_Aligned_TransposedEight    |        1,083 ms |        24,113 ms |          59,545 ms |
+| CODELET_AVX                     |          149 ms |         9,124 ms |          12,628 ms |
+| CODELET_AVX_FixedStride         |           79 ms |         7,270 ms |          10,610 ms |
+| CODELET_AVX_Unroll2             |          145 ms |         9,400 ms |          14,553 ms |
+| CODELET_AVX_Unroll2_FixedStride |           93 ms |         8,167 ms |          13,044 ms |
+
+## Original description
 
 In many high-energy astronomy and particle physics experiments data consists of
 relatively short digitised waveforms that need to be treated, i.e. filtered and
