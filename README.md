@@ -5,6 +5,12 @@ GPUs uing OpenCL to achieve significantly improved DFT performance.__
 
 _Stephen Fegan, LLR/Ecole Polytechnique, 2018-02-19_
 
+__Update 2025:__ Added test of 1024 point codelet with AVX2 and AVX512. The
+codelet is much more complex than the 60 point case tested originally, taking 
+significantly longer to generate using the ocml code (which must only be
+done once), and to compile. In my test it runs more than twice as fast as using 
+the FFTW API.
+
 In many high-energy astronomy and particle physics experiments data consists of
 relatively short digitised waveforms that need to be treated, i.e. filtered and
 analysed. Often this calls for transformation of the signal into frequency
