@@ -260,7 +260,7 @@ inline int WS(const stride s, const stride i) { return s*i; }
 
 } // namespace m512
 
-TEST(TestDFT_1024_AVX512, AVX512)
+TEST(TestDFT_1024_AVX512, CODELET_AVX)
 {
   __m512* xt = nullptr;
   __m512* xf;
@@ -299,7 +299,7 @@ inline int WS(const stride s, const stride i) { return 2*i; }
 
 } // namespace m512
 
-TEST(TestDFT_1024_AVX512, AVX512_FixedStride)
+TEST(TestDFT_1024_AVX512, CODELET_AVX_FixedStride)
 {
   __m512* xt = nullptr;
   __m512* xf;
@@ -340,7 +340,7 @@ inline int WS(const stride s, const stride i) { return s*i; }
 
 } // namespace m512
 
-TEST(TestDFT_1024_AVX512, AVX512_Unroll2)
+TEST(TestDFT_1024_AVX512, CODELET_AVX_Unroll2)
 {
   std::pair<__m512,__m512>* xt = nullptr;
   std::pair<__m512,__m512>* xf;
@@ -383,7 +383,7 @@ inline int WS(const stride s, const stride i) { return 2*i; }
 
 } // namespace m512
 
-TEST(TestDFT_1024_AVX512, AVX512_Unroll2_FixedStride)
+TEST(TestDFT_1024_AVX512, CODELET_AVX_Unroll2_FixedStride)
 {
   std::pair<__m512,__m512>* xt = nullptr;
   std::pair<__m512,__m512>* xf;

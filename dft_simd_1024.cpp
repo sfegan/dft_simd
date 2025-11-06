@@ -260,7 +260,7 @@ inline int WS(const stride s, const stride i) { return s*i; }
 
 } // namespace m256
 
-TEST(TestDFT_1024, AVX2)
+TEST(TestDFT_1024, CODELET_AVX)
 {
   __m256* xt = nullptr;
   __m256* xf;
@@ -299,7 +299,7 @@ inline int WS(const stride s, const stride i) { return 2*i; }
 
 } // namespace m256
 
-TEST(TestDFT_1024, AVX2_FixedStride)
+TEST(TestDFT_1024, CODELET_AVX_FixedStride)
 {
   __m256* xt = nullptr;
   __m256* xf;
@@ -340,7 +340,7 @@ inline int WS(const stride s, const stride i) { return s*i; }
 
 } // namespace m256
 
-TEST(TestDFT_1024, AVX2_Unroll2)
+TEST(TestDFT_1024, CODELET_AVX_Unroll2)
 {
   std::pair<__m256,__m256>* xt = nullptr;
   std::pair<__m256,__m256>* xf;
@@ -383,7 +383,7 @@ inline int WS(const stride s, const stride i) { return 2*i; }
 
 } // namespace m256
 
-TEST(TestDFT_1024, AVX2_Unroll2_FixedStride)
+TEST(TestDFT_1024, CODELET_AVX_Unroll2_FixedStride)
 {
   std::pair<__m256,__m256>* xt = nullptr;
   std::pair<__m256,__m256>* xf;
