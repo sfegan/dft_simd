@@ -260,12 +260,12 @@ inline int WS(const stride s, const stride i) { return s*i; }
 
 } // namespace m512
 
-TEST(TestDFT_1024_AVX512, AVX2)
+TEST(TestDFT_1024_AVX512, AVX512)
 {
   __m512* xt = nullptr;
   __m512* xf;
-  ::posix_memalign((void**)&xt, 32, nvec*nsamp*sizeof(float));
-  ::posix_memalign((void**)&xf, 32, nvec*2*(nsamp/2+1)*sizeof(float));
+  ::posix_memalign((void**)&xt, 64, nvec*nsamp*sizeof(float));
+  ::posix_memalign((void**)&xf, 64, nvec*2*(nsamp/2+1)*sizeof(float));
   for(unsigned i=0;i<2*(nsamp/2+1);i++)xf[i] = _mm512_setzero_ps();
   std::mt19937 core(12345);
   std::uniform_real_distribution<float> gen(0.0,1.0);
@@ -299,12 +299,12 @@ inline int WS(const stride s, const stride i) { return 2*i; }
 
 } // namespace m512
 
-TEST(TestDFT_1024_AVX512, AVX2_FixedStride)
+TEST(TestDFT_1024_AVX512, AVX512_FixedStride)
 {
   __m512* xt = nullptr;
   __m512* xf;
-  ::posix_memalign((void**)&xt, 32, nvec*nsamp*sizeof(float));
-  ::posix_memalign((void**)&xf, 32, nvec*2*(nsamp/2+1)*sizeof(float));
+  ::posix_memalign((void**)&xt, 64, nvec*nsamp*sizeof(float));
+  ::posix_memalign((void**)&xf, 64, nvec*2*(nsamp/2+1)*sizeof(float));
   for(unsigned i=0;i<2*(nsamp/2+1);i++)xf[i] = _mm512_setzero_ps();
   std::mt19937 core(12345);
   std::uniform_real_distribution<float> gen(0.0,1.0);
@@ -340,12 +340,12 @@ inline int WS(const stride s, const stride i) { return s*i; }
 
 } // namespace m512
 
-TEST(TestDFT_1024_AVX512, AVX2_Unroll2)
+TEST(TestDFT_1024_AVX512, AVX512_Unroll2)
 {
   std::pair<__m512,__m512>* xt = nullptr;
   std::pair<__m512,__m512>* xf;
-  ::posix_memalign((void**)&xt, 32, 2*nvec*nsamp*sizeof(float));
-  ::posix_memalign((void**)&xf, 32, 2*nvec*2*(nsamp/2+1)*sizeof(float));
+  ::posix_memalign((void**)&xt, 64, 2*nvec*nsamp*sizeof(float));
+  ::posix_memalign((void**)&xf, 64, 2*nvec*2*(nsamp/2+1)*sizeof(float));
   for(unsigned i=0;i<2*(nsamp/2+1);i++)
     xf[i].first = xf[i].second = _mm512_setzero_ps();
   std::mt19937 core(12345);
@@ -383,12 +383,12 @@ inline int WS(const stride s, const stride i) { return 2*i; }
 
 } // namespace m512
 
-TEST(TestDFT_1024_AVX512, AVX2_Unroll2_FixedStride)
+TEST(TestDFT_1024_AVX512, AVX512_Unroll2_FixedStride)
 {
   std::pair<__m512,__m512>* xt = nullptr;
   std::pair<__m512,__m512>* xf;
-  ::posix_memalign((void**)&xt, 32, 2*nvec*nsamp*sizeof(float));
-  ::posix_memalign((void**)&xf, 32, 2*nvec*2*(nsamp/2+1)*sizeof(float));
+  ::posix_memalign((void**)&xt, 64, 2*nvec*nsamp*sizeof(float));
+  ::posix_memalign((void**)&xf, 64, 2*nvec*2*(nsamp/2+1)*sizeof(float));
   for(unsigned i=0;i<2*(nsamp/2+1);i++)
     xf[i].first = xf[i].second = _mm512_setzero_ps();
   std::mt19937 core(12345);
